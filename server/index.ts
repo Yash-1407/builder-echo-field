@@ -2,6 +2,12 @@ import "dotenv/config";
 import express from "express";
 import cors from "cors";
 import { initializeDatabase } from "./lib/initDb";
+import {
+  rateLimit,
+  sanitizeInput,
+  securityHeaders,
+  detectSuspiciousActivity
+} from "./middleware/validation";
 import { handleDemo } from "./routes/demo";
 import {
   handleRegister,
