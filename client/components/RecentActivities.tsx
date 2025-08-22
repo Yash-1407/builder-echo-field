@@ -26,6 +26,8 @@ const getActivityIcon = (type: Activity["type"]) => {
       return Zap;
     case "food":
       return Utensils;
+    case "shopping":
+      return ShoppingBag;
     default:
       return Car;
   }
