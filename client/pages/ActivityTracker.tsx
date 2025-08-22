@@ -154,10 +154,12 @@ export default function ActivityTracker() {
     if (!foodForm.mealType || !foodForm.foodType) return;
 
     setIsLoading(true);
+    setSubmitError(null);
+
     try {
       const impact = calculateFoodImpact(foodForm.foodType);
 
-      addActivity({
+      await addActivity({
         type: "food",
         description: foodForm.description || `${foodForm.foodType} ${foodForm.mealType}`,
         impact: Math.round(impact * 100) / 100,
@@ -165,14 +167,15 @@ export default function ActivityTracker() {
         date: new Date().toISOString(),
         category: foodForm.foodType,
         details: {
-          mealType: foodForm.mealType,
-          foodType: foodForm.foodType
+          meal_type: foodForm.mealType,
+          food_type: foodForm.foodType
         }
       });
 
       setFoodForm({ mealType: "", foodType: "", description: "" });
     } catch (error) {
       console.error("Error adding food activity:", error);
+      setSubmitError(error instanceof Error ? error.message : "Failed to add activity");
     } finally {
       setIsLoading(false);
     }
