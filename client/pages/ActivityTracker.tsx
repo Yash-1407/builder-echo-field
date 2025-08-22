@@ -121,11 +121,13 @@ export default function ActivityTracker() {
     if (!energyForm.energySource || !energyForm.energyAmount) return;
 
     setIsLoading(true);
+    setSubmitError(null);
+
     try {
       const amount = parseFloat(energyForm.energyAmount);
       const impact = calculateEnergyImpact(energyForm.energySource, amount);
 
-      addActivity({
+      await addActivity({
         type: "energy",
         description: energyForm.description || `${amount} kWh from ${energyForm.energySource}`,
         impact: Math.round(impact * 100) / 100,
@@ -133,14 +135,15 @@ export default function ActivityTracker() {
         date: new Date().toISOString(),
         category: energyForm.energySource,
         details: {
-          energySource: energyForm.energySource,
-          energyAmount: amount
+          energy_source: energyForm.energySource,
+          energy_amount: amount
         }
       });
 
       setEnergyForm({ energySource: "", energyAmount: "", description: "" });
     } catch (error) {
       console.error("Error adding energy activity:", error);
+      setSubmitError(error instanceof Error ? error.message : "Failed to add activity");
     } finally {
       setIsLoading(false);
     }
