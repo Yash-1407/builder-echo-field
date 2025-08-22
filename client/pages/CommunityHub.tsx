@@ -1,6 +1,12 @@
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -28,7 +34,7 @@ import {
   UserPlus,
   Star,
   MapPin,
-  Clock
+  Clock,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
@@ -36,8 +42,8 @@ interface Challenge {
   id: string;
   title: string;
   description: string;
-  type: 'individual' | 'team' | 'global';
-  category: 'transport' | 'energy' | 'food' | 'waste' | 'lifestyle';
+  type: "individual" | "team" | "global";
+  category: "transport" | "energy" | "food" | "waste" | "lifestyle";
   target: number;
   unit: string;
   duration: number; // days
@@ -51,7 +57,7 @@ interface Challenge {
     title?: string;
   };
   isJoined: boolean;
-  difficulty: 'easy' | 'medium' | 'hard';
+  difficulty: "easy" | "medium" | "hard";
 }
 
 interface CommunityPost {
@@ -97,7 +103,8 @@ export default function CommunityHub() {
     {
       id: "1",
       title: "Zero Car Week",
-      description: "Go a full week without using a car. Use walking, cycling, or public transport instead.",
+      description:
+        "Go a full week without using a car. Use walking, cycling, or public transport instead.",
       type: "individual",
       category: "transport",
       target: 7,
@@ -110,15 +117,16 @@ export default function CommunityHub() {
       reward: {
         points: 500,
         badge: "🚲",
-        title: "Green Commuter"
+        title: "Green Commuter",
       },
       isJoined: false,
-      difficulty: "medium"
+      difficulty: "medium",
     },
     {
       id: "2",
       title: "Plant-Based Month",
-      description: "Commit to a plant-based diet for 30 days and track your carbon footprint reduction.",
+      description:
+        "Commit to a plant-based diet for 30 days and track your carbon footprint reduction.",
       type: "global",
       category: "food",
       target: 30,
@@ -131,10 +139,10 @@ export default function CommunityHub() {
       reward: {
         points: 1000,
         badge: "🌱",
-        title: "Plant Pioneer"
+        title: "Plant Pioneer",
       },
       isJoined: true,
-      difficulty: "hard"
+      difficulty: "hard",
     },
     {
       id: "3",
@@ -152,11 +160,11 @@ export default function CommunityHub() {
       reward: {
         points: 750,
         badge: "⚡",
-        title: "Energy Efficient"
+        title: "Energy Efficient",
       },
       isJoined: false,
-      difficulty: "easy"
-    }
+      difficulty: "easy",
+    },
   ];
 
   const communityPosts: CommunityPost[] = [
@@ -166,19 +174,20 @@ export default function CommunityHub() {
         name: "Sarah Chen",
         avatar: "/placeholder.svg",
         ecoScore: 892,
-        location: "San Francisco, CA"
+        location: "San Francisco, CA",
       },
-      content: "Just completed my first zero-waste week! Amazing how much plastic we use without thinking about it. Small changes, big impact! 🌍",
+      content:
+        "Just completed my first zero-waste week! Amazing how much plastic we use without thinking about it. Small changes, big impact! 🌍",
       achievement: {
         type: "Zero Waste Week",
         description: "Completed 7 days without generating waste",
-        impact: 2.5
+        impact: 2.5,
       },
       likes: 34,
       comments: 12,
       timestamp: "2 hours ago",
       isLiked: false,
-      tags: ["zero-waste", "plastic-free", "lifestyle"]
+      tags: ["zero-waste", "plastic-free", "lifestyle"],
     },
     {
       id: "2",
@@ -186,14 +195,15 @@ export default function CommunityHub() {
         name: "Marcus Johnson",
         avatar: "/placeholder.svg",
         ecoScore: 756,
-        location: "Portland, OR"
+        location: "Portland, OR",
       },
-      content: "Switched to cycling for my daily commute. Not only am I reducing my carbon footprint by 3.2 kg CO₂ per day, but I feel so much healthier! Who else is part of the bike-to-work movement?",
+      content:
+        "Switched to cycling for my daily commute. Not only am I reducing my carbon footprint by 3.2 kg CO₂ per day, but I feel so much healthier! Who else is part of the bike-to-work movement?",
       likes: 67,
       comments: 23,
       timestamp: "5 hours ago",
       isLiked: true,
-      tags: ["cycling", "commute", "health"]
+      tags: ["cycling", "commute", "health"],
     },
     {
       id: "3",
@@ -201,15 +211,16 @@ export default function CommunityHub() {
         name: "Elena Rodriguez",
         avatar: "/placeholder.svg",
         ecoScore: 923,
-        location: "Austin, TX"
+        location: "Austin, TX",
       },
-      content: "My vegetable garden is thriving! Growing your own food is incredibly rewarding and sustainable. Here's what I harvested this week 🥬🍅",
+      content:
+        "My vegetable garden is thriving! Growing your own food is incredibly rewarding and sustainable. Here's what I harvested this week 🥬🍅",
       likes: 45,
       comments: 18,
       timestamp: "1 day ago",
       isLiked: false,
-      tags: ["gardening", "food", "sustainable"]
-    }
+      tags: ["gardening", "food", "sustainable"],
+    },
   ];
 
   const leaderboard: LeaderboardEntry[] = [
@@ -220,7 +231,7 @@ export default function CommunityHub() {
       score: 2547,
       change: 12,
       location: "Seattle, WA",
-      achievements: ["🌱", "🚲", "⚡", "♻️"]
+      achievements: ["🌱", "🚲", "⚡", "♻️"],
     },
     {
       rank: 2,
@@ -229,7 +240,7 @@ export default function CommunityHub() {
       score: 2398,
       change: -3,
       location: "Boulder, CO",
-      achievements: ["🌱", "⚡", "♻️"]
+      achievements: ["🌱", "⚡", "♻️"],
     },
     {
       rank: 3,
@@ -238,7 +249,7 @@ export default function CommunityHub() {
       score: 2156,
       change: 8,
       location: "Portland, OR",
-      achievements: ["🚲", "⚡", "♻️"]
+      achievements: ["🚲", "⚡", "♻️"],
     },
     {
       rank: 4,
@@ -247,34 +258,46 @@ export default function CommunityHub() {
       score: 1834,
       change: 15,
       location: "Your City",
-      achievements: ["🌱", "🚲"]
-    }
+      achievements: ["🌱", "🚲"],
+    },
   ];
 
   const getDifficultyColor = (difficulty: string) => {
     switch (difficulty) {
-      case 'easy': return 'text-green-600 bg-green-50';
-      case 'medium': return 'text-yellow-600 bg-yellow-50';
-      case 'hard': return 'text-red-600 bg-red-50';
-      default: return 'text-gray-600 bg-gray-50';
+      case "easy":
+        return "text-green-600 bg-green-50";
+      case "medium":
+        return "text-yellow-600 bg-yellow-50";
+      case "hard":
+        return "text-red-600 bg-red-50";
+      default:
+        return "text-gray-600 bg-gray-50";
     }
   };
 
   const getCategoryIcon = (category: string) => {
     switch (category) {
-      case 'transport': return '🚲';
-      case 'energy': return '⚡';
-      case 'food': return '🥬';
-      case 'waste': return '♻️';
-      case 'lifestyle': return '🌱';
-      default: return '🌍';
+      case "transport":
+        return "🚲";
+      case "energy":
+        return "⚡";
+      case "food":
+        return "🥬";
+      case "waste":
+        return "♻️";
+      case "lifestyle":
+        return "🌱";
+      default:
+        return "🌍";
     }
   };
 
-  const filteredChallenges = challenges.filter(challenge => {
-    const matchesSearch = challenge.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                         challenge.description.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesCategory = selectedCategory === 'all' || challenge.category === selectedCategory;
+  const filteredChallenges = challenges.filter((challenge) => {
+    const matchesSearch =
+      challenge.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      challenge.description.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesCategory =
+      selectedCategory === "all" || challenge.category === selectedCategory;
     return matchesSearch && matchesCategory;
   });
 
@@ -298,9 +321,12 @@ export default function CommunityHub() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6 }}
           >
-            <h1 className="text-3xl font-bold text-foreground mb-2">Community Hub</h1>
+            <h1 className="text-3xl font-bold text-foreground mb-2">
+              Community Hub
+            </h1>
             <p className="text-muted-foreground">
-              Connect with eco-warriors worldwide and join sustainability challenges
+              Connect with eco-warriors worldwide and join sustainability
+              challenges
             </p>
           </motion.div>
         </div>
@@ -363,7 +389,8 @@ export default function CommunityHub() {
                 <CardHeader>
                   <CardTitle>Find Challenges</CardTitle>
                   <CardDescription>
-                    Join sustainability challenges and compete with the community
+                    Join sustainability challenges and compete with the
+                    community
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
@@ -411,30 +438,49 @@ export default function CommunityHub() {
                       exit={{ opacity: 0, y: -20 }}
                       transition={{ duration: 0.3, delay: index * 0.1 }}
                     >
-                      <Card className={`h-full ${challenge.isJoined ? 'ring-2 ring-primary' : ''}`}>
+                      <Card
+                        className={`h-full ${challenge.isJoined ? "ring-2 ring-primary" : ""}`}
+                      >
                         <CardHeader>
                           <div className="flex items-center justify-between">
-                            <Badge className={getDifficultyColor(challenge.difficulty)}>
+                            <Badge
+                              className={getDifficultyColor(
+                                challenge.difficulty,
+                              )}
+                            >
                               {challenge.difficulty}
                             </Badge>
-                            <span className="text-2xl">{getCategoryIcon(challenge.category)}</span>
+                            <span className="text-2xl">
+                              {getCategoryIcon(challenge.category)}
+                            </span>
                           </div>
-                          <CardTitle className="text-lg">{challenge.title}</CardTitle>
+                          <CardTitle className="text-lg">
+                            {challenge.title}
+                          </CardTitle>
                           <CardDescription className="line-clamp-2">
                             {challenge.description}
                           </CardDescription>
                         </CardHeader>
                         <CardContent className="space-y-4">
                           <div className="flex items-center justify-between text-sm">
-                            <span className="text-muted-foreground">Progress</span>
-                            <span className="font-medium">{challenge.progress}%</span>
+                            <span className="text-muted-foreground">
+                              Progress
+                            </span>
+                            <span className="font-medium">
+                              {challenge.progress}%
+                            </span>
                           </div>
-                          <Progress value={challenge.progress} className="h-2" />
-                          
+                          <Progress
+                            value={challenge.progress}
+                            className="h-2"
+                          />
+
                           <div className="flex items-center justify-between text-sm">
                             <div className="flex items-center gap-1">
                               <Users className="h-4 w-4" />
-                              <span>{challenge.participants.toLocaleString()}</span>
+                              <span>
+                                {challenge.participants.toLocaleString()}
+                              </span>
                             </div>
                             <div className="flex items-center gap-1">
                               <Clock className="h-4 w-4" />
@@ -444,17 +490,25 @@ export default function CommunityHub() {
 
                           <div className="flex items-center justify-between">
                             <div>
-                              <p className="text-sm text-muted-foreground">Reward</p>
+                              <p className="text-sm text-muted-foreground">
+                                Reward
+                              </p>
                               <div className="flex items-center gap-1">
                                 <Trophy className="h-4 w-4 text-yellow-600" />
-                                <span className="font-medium">{challenge.reward.points} pts</span>
+                                <span className="font-medium">
+                                  {challenge.reward.points} pts
+                                </span>
                                 {challenge.reward.badge && (
-                                  <span className="text-lg">{challenge.reward.badge}</span>
+                                  <span className="text-lg">
+                                    {challenge.reward.badge}
+                                  </span>
                                 )}
                               </div>
                             </div>
                             <Button
-                              variant={challenge.isJoined ? "outline" : "default"}
+                              variant={
+                                challenge.isJoined ? "outline" : "default"
+                              }
                               size="sm"
                             >
                               {challenge.isJoined ? "Joined" : "Join Challenge"}
@@ -490,12 +544,17 @@ export default function CommunityHub() {
                         <Avatar>
                           <AvatarImage src={post.author.avatar} />
                           <AvatarFallback>
-                            {post.author.name.split(" ").map(n => n[0]).join("")}
+                            {post.author.name
+                              .split(" ")
+                              .map((n) => n[0])
+                              .join("")}
                           </AvatarFallback>
                         </Avatar>
                         <div className="flex-1 space-y-2">
                           <div className="flex items-center gap-2">
-                            <h4 className="font-semibold">{post.author.name}</h4>
+                            <h4 className="font-semibold">
+                              {post.author.name}
+                            </h4>
                             <Badge variant="secondary" className="text-xs">
                               {post.author.ecoScore} eco score
                             </Badge>
@@ -506,9 +565,9 @@ export default function CommunityHub() {
                               </div>
                             )}
                           </div>
-                          
+
                           <p className="text-foreground">{post.content}</p>
-                          
+
                           {post.achievement && (
                             <div className="p-3 rounded-lg bg-green-50 dark:bg-green-950/20 border border-green-200 dark:border-green-800">
                               <div className="flex items-center gap-2">
@@ -518,39 +577,56 @@ export default function CommunityHub() {
                                 </span>
                               </div>
                               <p className="text-sm text-green-700 dark:text-green-300 mt-1">
-                                {post.achievement.description} • Saved {post.achievement.impact} kg CO₂
+                                {post.achievement.description} • Saved{" "}
+                                {post.achievement.impact} kg CO₂
                               </p>
                             </div>
                           )}
-                          
+
                           <div className="flex flex-wrap gap-2">
                             {post.tags.map((tag) => (
-                              <Badge key={tag} variant="outline" className="text-xs">
+                              <Badge
+                                key={tag}
+                                variant="outline"
+                                className="text-xs"
+                              >
                                 #{tag}
                               </Badge>
                             ))}
                           </div>
-                          
+
                           <div className="flex items-center justify-between pt-2">
                             <div className="flex items-center gap-4">
                               <Button
                                 variant="ghost"
                                 size="sm"
-                                className={`gap-1 ${post.isLiked ? 'text-red-600' : ''}`}
+                                className={`gap-1 ${post.isLiked ? "text-red-600" : ""}`}
                               >
-                                <Heart className={`h-4 w-4 ${post.isLiked ? 'fill-current' : ''}`} />
+                                <Heart
+                                  className={`h-4 w-4 ${post.isLiked ? "fill-current" : ""}`}
+                                />
                                 {post.likes}
                               </Button>
-                              <Button variant="ghost" size="sm" className="gap-1">
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className="gap-1"
+                              >
                                 <MessageCircle className="h-4 w-4" />
                                 {post.comments}
                               </Button>
-                              <Button variant="ghost" size="sm" className="gap-1">
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className="gap-1"
+                              >
                                 <Share2 className="h-4 w-4" />
                                 Share
                               </Button>
                             </div>
-                            <span className="text-xs text-muted-foreground">{post.timestamp}</span>
+                            <span className="text-xs text-muted-foreground">
+                              {post.timestamp}
+                            </span>
                           </div>
                         </div>
                       </div>
@@ -583,13 +659,19 @@ export default function CommunityHub() {
                       animate={{ opacity: 1, x: 0 }}
                       transition={{ duration: 0.3, delay: index * 0.1 }}
                       className={`flex items-center gap-4 p-4 rounded-lg ${
-                        entry.name === state.user?.name ? 'bg-primary/10 border border-primary/20' : 'bg-muted/50'
+                        entry.name === state.user?.name
+                          ? "bg-primary/10 border border-primary/20"
+                          : "bg-muted/50"
                       }`}
                     >
                       <div className="flex items-center gap-3">
-                        <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold ${
-                          entry.rank <= 3 ? 'bg-yellow-500 text-white' : 'bg-gray-200 text-gray-700'
-                        }`}>
+                        <div
+                          className={`w-8 h-8 rounded-full flex items-center justify-center font-bold ${
+                            entry.rank <= 3
+                              ? "bg-yellow-500 text-white"
+                              : "bg-gray-200 text-gray-700"
+                          }`}
+                        >
                           {entry.rank <= 3 ? (
                             <Trophy className="h-4 w-4" />
                           ) : (
@@ -599,11 +681,14 @@ export default function CommunityHub() {
                         <Avatar>
                           <AvatarImage src={entry.avatar} />
                           <AvatarFallback>
-                            {entry.name.split(" ").map(n => n[0]).join("")}
+                            {entry.name
+                              .split(" ")
+                              .map((n) => n[0])
+                              .join("")}
                           </AvatarFallback>
                         </Avatar>
                       </div>
-                      
+
                       <div className="flex-1">
                         <div className="flex items-center gap-2">
                           <h4 className="font-semibold">{entry.name}</h4>
@@ -618,17 +703,22 @@ export default function CommunityHub() {
                           </div>
                         )}
                       </div>
-                      
+
                       <div className="text-right">
-                        <p className="font-bold text-lg">{entry.score.toLocaleString()}</p>
-                        <div className={`text-sm flex items-center gap-1 ${
-                          entry.change > 0 ? 'text-green-600' : 'text-red-600'
-                        }`}>
+                        <p className="font-bold text-lg">
+                          {entry.score.toLocaleString()}
+                        </p>
+                        <div
+                          className={`text-sm flex items-center gap-1 ${
+                            entry.change > 0 ? "text-green-600" : "text-red-600"
+                          }`}
+                        >
                           <TrendingUp className="h-3 w-3" />
-                          {entry.change > 0 ? '+' : ''}{entry.change}
+                          {entry.change > 0 ? "+" : ""}
+                          {entry.change}
                         </div>
                       </div>
-                      
+
                       <div className="flex gap-1">
                         {entry.achievements.map((achievement, i) => (
                           <span key={i} className="text-lg" title="Achievement">
@@ -655,7 +745,8 @@ export default function CommunityHub() {
                 description="Connect with like-minded individuals in your area and form eco-friendly groups. This feature is currently in development."
                 action={{
                   label: "Get Notified",
-                  onClick: () => alert("You'll be notified when groups are available!")
+                  onClick: () =>
+                    alert("You'll be notified when groups are available!"),
                 }}
                 icon={Users}
               />

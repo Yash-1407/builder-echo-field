@@ -1,10 +1,13 @@
-import { createClient } from '@supabase/supabase-js';
+import { createClient } from "@supabase/supabase-js";
 
-const supabaseUrl = process.env.SUPABASE_URL || 'https://xmuvtxtspyqwvelvuusr.supabase.co';
-const supabaseKey = process.env.SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhtdXZ0eHRzcHlxd3ZlbHZ1dXNyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTU4ODI4MjcsImV4cCI6MjA3MTQ1ODgyN30.-ZC9RB2i7kHN-d-nL7uQOG-hT7khyxMrIER8Tv9x0d0';
+const supabaseUrl =
+  process.env.SUPABASE_URL || "https://xmuvtxtspyqwvelvuusr.supabase.co";
+const supabaseKey =
+  process.env.SUPABASE_ANON_KEY ||
+  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhtdXZ0eHRzcHlxd3ZlbHZ1dXNyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTU4ODI4MjcsImV4cCI6MjA3MTQ1ODgyN30.-ZC9RB2i7kHN-d-nL7uQOG-hT7khyxMrIER8Tv9x0d0";
 
-console.log('Supabase URL:', supabaseUrl);
-console.log('Using DATABASE_URL:', process.env.DATABASE_URL ? 'Yes' : 'No');
+console.log("Supabase URL:", supabaseUrl);
+console.log("Using DATABASE_URL:", process.env.DATABASE_URL ? "Yes" : "No");
 
 export const supabase = createClient(supabaseUrl, supabaseKey);
 
@@ -27,7 +30,7 @@ export interface User {
 export interface Activity {
   id: string;
   user_id: string;
-  type: 'transport' | 'energy' | 'food' | 'shopping';
+  type: "transport" | "energy" | "food" | "shopping";
   description: string;
   impact: number;
   unit: string;
@@ -51,19 +54,24 @@ export interface Activity {
 export async function initializeDatabase() {
   try {
     // Create users table
-    const { error: usersError } = await supabase.rpc('create_users_table');
-    if (usersError && !usersError.message.includes('already exists')) {
-      console.error('Error creating users table:', usersError);
+    const { error: usersError } = await supabase.rpc("create_users_table");
+    if (usersError && !usersError.message.includes("already exists")) {
+      console.error("Error creating users table:", usersError);
     }
 
     // Create activities table
-    const { error: activitiesError } = await supabase.rpc('create_activities_table');
-    if (activitiesError && !activitiesError.message.includes('already exists')) {
-      console.error('Error creating activities table:', activitiesError);
+    const { error: activitiesError } = await supabase.rpc(
+      "create_activities_table",
+    );
+    if (
+      activitiesError &&
+      !activitiesError.message.includes("already exists")
+    ) {
+      console.error("Error creating activities table:", activitiesError);
     }
 
-    console.log('Database tables initialized successfully');
+    console.log("Database tables initialized successfully");
   } catch (error) {
-    console.error('Database initialization error:', error);
+    console.error("Database initialization error:", error);
   }
 }

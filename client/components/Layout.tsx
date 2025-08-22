@@ -11,7 +11,7 @@ import {
   Plus,
   TrendingUp,
   Users,
-  User
+  User,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
@@ -53,7 +53,9 @@ export default function Layout({ children }: LayoutProps) {
             >
               <Leaf className="h-5 w-5 text-primary-foreground" />
             </motion.div>
-            <span className="text-xl font-bold text-foreground">CarbonMeter</span>
+            <span className="text-xl font-bold text-foreground">
+              CarbonMeter
+            </span>
           </Link>
 
           {/* Desktop Navigation */}
@@ -107,7 +109,11 @@ export default function Layout({ children }: LayoutProps) {
             {/* Mobile Menu */}
             <Sheet open={isOpen} onOpenChange={setIsOpen}>
               <SheetTrigger asChild>
-                <Button variant="ghost" size="sm" className="md:hidden h-9 w-9 px-0">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="md:hidden h-9 w-9 px-0"
+                >
                   <Menu className="h-4 w-4" />
                 </Button>
               </SheetTrigger>
@@ -149,9 +155,7 @@ export default function Layout({ children }: LayoutProps) {
       </header>
 
       {/* Main Content */}
-      <main className="flex-1">
-        {children}
-      </main>
+      <main className="flex-1">{children}</main>
     </div>
   );
 }

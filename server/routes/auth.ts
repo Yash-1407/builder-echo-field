@@ -16,52 +16,55 @@ const loginSchema = z.object({
 const updateProfileSchema = z.object({
   name: z.string().min(2).optional(),
   monthlyTarget: z.number().min(0.1).max(50).optional(),
-  goals: z.object({
-    carbon_reduction: z.number().min(0).max(100).optional(),
-    transport_reduction: z.number().min(0).max(100).optional(),
-    renewable_energy: z.number().min(0).max(100).optional(),
-  }).optional(),
+  goals: z
+    .object({
+      carbon_reduction: z.number().min(0).max(100).optional(),
+      transport_reduction: z.number().min(0).max(100).optional(),
+      renewable_energy: z.number().min(0).max(100).optional(),
+    })
+    .optional(),
 });
 
 // Helper functions
-const generateSessionToken = () => Math.random().toString(36).substr(2, 15) + Date.now().toString(36);
+const generateSessionToken = () =>
+  Math.random().toString(36).substr(2, 15) + Date.now().toString(36);
 
 // Middleware to verify authentication
 export const requireAuth: RequestHandler = async (req, res, next) => {
-  const sessionToken = req.headers.authorization?.replace('Bearer ', '');
-  
+  const sessionToken = req.headers.authorization?.replace("Bearer ", "");
+
   if (!sessionToken) {
-    return res.status(401).json({ error: 'No session token provided' });
+    return res.status(401).json({ error: "No session token provided" });
   }
-  
+
   try {
     // Check if session exists and is valid
     const { data: session, error } = await supabase
-      .from('user_sessions')
-      .select('user_id, expires_at')
-      .eq('session_token', sessionToken)
+      .from("user_sessions")
+      .select("user_id, expires_at")
+      .eq("session_token", sessionToken)
       .single();
 
     if (error || !session) {
-      return res.status(401).json({ error: 'Invalid session token' });
+      return res.status(401).json({ error: "Invalid session token" });
     }
 
     // Check if session is expired
     if (new Date(session.expires_at) < new Date()) {
       // Delete expired session
       await supabase
-        .from('user_sessions')
+        .from("user_sessions")
         .delete()
-        .eq('session_token', sessionToken);
-      
-      return res.status(401).json({ error: 'Session expired' });
+        .eq("session_token", sessionToken);
+
+      return res.status(401).json({ error: "Session expired" });
     }
 
     req.user = { id: session.user_id };
     next();
   } catch (error) {
-    console.error('Authentication error:', error);
-    res.status(500).json({ error: 'Internal server error' });
+    console.error("Authentication error:", error);
+    res.status(500).json({ error: "Internal server error" });
   }
 };
 
@@ -69,21 +72,23 @@ export const requireAuth: RequestHandler = async (req, res, next) => {
 export const handleRegister: RequestHandler = async (req, res) => {
   try {
     const { name, email, monthlyTarget } = registerSchema.parse(req.body);
-    
+
     // Check if user already exists
     const { data: existingUser } = await supabase
-      .from('users')
-      .select('id')
-      .eq('email', email)
+      .from("users")
+      .select("id")
+      .eq("email", email)
       .single();
 
     if (existingUser) {
-      return res.status(400).json({ error: 'User with this email already exists' });
+      return res
+        .status(400)
+        .json({ error: "User with this email already exists" });
     }
-    
+
     // Create new user
     const { data: user, error: userError } = await supabase
-      .from('users')
+      .from("users")
       .insert({
         name,
         email,
@@ -99,8 +104,8 @@ export const handleRegister: RequestHandler = async (req, res) => {
       .single();
 
     if (userError) {
-      console.error('User creation error:', userError);
-      return res.status(500).json({ error: 'Failed to create user' });
+      console.error("User creation error:", userError);
+      return res.status(500).json({ error: "Failed to create user" });
     }
 
     // Create session
@@ -109,7 +114,7 @@ export const handleRegister: RequestHandler = async (req, res) => {
     expiresAt.setDate(expiresAt.getDate() + 30); // 30 days
 
     const { error: sessionError } = await supabase
-      .from('user_sessions')
+      .from("user_sessions")
       .insert({
         user_id: user.id,
         session_token: sessionToken,
@@ -117,10 +122,10 @@ export const handleRegister: RequestHandler = async (req, res) => {
       });
 
     if (sessionError) {
-      console.error('Session creation error:', sessionError);
-      return res.status(500).json({ error: 'Failed to create session' });
+      console.error("Session creation error:", sessionError);
+      return res.status(500).json({ error: "Failed to create session" });
     }
-    
+
     // Return user data and session token
     res.status(201).json({
       user: {
@@ -132,13 +137,12 @@ export const handleRegister: RequestHandler = async (req, res) => {
       },
       sessionToken,
     });
-    
   } catch (error) {
     if (error instanceof z.ZodError) {
       return res.status(400).json({ error: error.errors[0].message });
     }
-    console.error('Registration error:', error);
-    res.status(500).json({ error: 'Internal server error' });
+    console.error("Registration error:", error);
+    res.status(500).json({ error: "Internal server error" });
   }
 };
 
@@ -146,30 +150,30 @@ export const handleRegister: RequestHandler = async (req, res) => {
 export const handleLogin: RequestHandler = async (req, res) => {
   try {
     const { email } = loginSchema.parse(req.body);
-    
+
     // Find user by email
     const { data: user, error } = await supabase
-      .from('users')
-      .select('*')
-      .eq('email', email)
+      .from("users")
+      .select("*")
+      .eq("email", email)
       .single();
 
     if (error || !user) {
-      return res.status(404).json({ error: 'User not found' });
+      return res.status(404).json({ error: "User not found" });
     }
-    
+
     // Update last login
     await supabase
-      .from('users')
+      .from("users")
       .update({ last_login: new Date().toISOString() })
-      .eq('id', user.id);
+      .eq("id", user.id);
 
     // Clean up old sessions for this user
     await supabase
-      .from('user_sessions')
+      .from("user_sessions")
       .delete()
-      .eq('user_id', user.id)
-      .lt('expires_at', new Date().toISOString());
+      .eq("user_id", user.id)
+      .lt("expires_at", new Date().toISOString());
 
     // Create new session
     const sessionToken = generateSessionToken();
@@ -177,7 +181,7 @@ export const handleLogin: RequestHandler = async (req, res) => {
     expiresAt.setDate(expiresAt.getDate() + 30); // 30 days
 
     const { error: sessionError } = await supabase
-      .from('user_sessions')
+      .from("user_sessions")
       .insert({
         user_id: user.id,
         session_token: sessionToken,
@@ -185,8 +189,8 @@ export const handleLogin: RequestHandler = async (req, res) => {
       });
 
     if (sessionError) {
-      console.error('Session creation error:', sessionError);
-      return res.status(500).json({ error: 'Failed to create session' });
+      console.error("Session creation error:", sessionError);
+      return res.status(500).json({ error: "Failed to create session" });
     }
 
     res.json({
@@ -199,13 +203,12 @@ export const handleLogin: RequestHandler = async (req, res) => {
       },
       sessionToken,
     });
-    
   } catch (error) {
     if (error instanceof z.ZodError) {
       return res.status(400).json({ error: error.errors[0].message });
     }
-    console.error('Login error:', error);
-    res.status(500).json({ error: 'Internal server error' });
+    console.error("Login error:", error);
+    res.status(500).json({ error: "Internal server error" });
   }
 };
 
@@ -214,19 +217,19 @@ export const handleGetUser: RequestHandler = async (req, res) => {
   try {
     const userId = req.user?.id;
     if (!userId) {
-      return res.status(401).json({ error: 'Not authenticated' });
+      return res.status(401).json({ error: "Not authenticated" });
     }
-    
+
     const { data: user, error } = await supabase
-      .from('users')
-      .select('*')
-      .eq('id', userId)
+      .from("users")
+      .select("*")
+      .eq("id", userId)
       .single();
 
     if (error || !user) {
-      return res.status(404).json({ error: 'User not found' });
+      return res.status(404).json({ error: "User not found" });
     }
-    
+
     res.json({
       user: {
         id: user.id,
@@ -236,10 +239,9 @@ export const handleGetUser: RequestHandler = async (req, res) => {
         goals: user.goals,
       },
     });
-    
   } catch (error) {
-    console.error('Get user error:', error);
-    res.status(500).json({ error: 'Internal server error' });
+    console.error("Get user error:", error);
+    res.status(500).json({ error: "Internal server error" });
   }
 };
 
@@ -248,11 +250,11 @@ export const handleUpdateProfile: RequestHandler = async (req, res) => {
   try {
     const userId = req.user?.id;
     if (!userId) {
-      return res.status(401).json({ error: 'Not authenticated' });
+      return res.status(401).json({ error: "Not authenticated" });
     }
-    
+
     const updates = updateProfileSchema.parse(req.body);
-    
+
     // Build update object
     const updateObj: any = {};
     if (updates.name) updateObj.name = updates.name;
@@ -260,9 +262,9 @@ export const handleUpdateProfile: RequestHandler = async (req, res) => {
     if (updates.goals) {
       // Merge with existing goals
       const { data: currentUser } = await supabase
-        .from('users')
-        .select('goals')
-        .eq('id', userId)
+        .from("users")
+        .select("goals")
+        .eq("id", userId)
         .single();
 
       updateObj.goals = {
@@ -272,17 +274,17 @@ export const handleUpdateProfile: RequestHandler = async (req, res) => {
     }
 
     const { data: user, error } = await supabase
-      .from('users')
+      .from("users")
       .update(updateObj)
-      .eq('id', userId)
+      .eq("id", userId)
       .select()
       .single();
 
     if (error) {
-      console.error('Update profile error:', error);
-      return res.status(500).json({ error: 'Failed to update profile' });
+      console.error("Update profile error:", error);
+      return res.status(500).json({ error: "Failed to update profile" });
     }
-    
+
     res.json({
       user: {
         id: user.id,
@@ -292,32 +294,30 @@ export const handleUpdateProfile: RequestHandler = async (req, res) => {
         goals: user.goals,
       },
     });
-    
   } catch (error) {
     if (error instanceof z.ZodError) {
       return res.status(400).json({ error: error.errors[0].message });
     }
-    console.error('Update profile error:', error);
-    res.status(500).json({ error: 'Internal server error' });
+    console.error("Update profile error:", error);
+    res.status(500).json({ error: "Internal server error" });
   }
 };
 
 // Logout endpoint
 export const handleLogout: RequestHandler = async (req, res) => {
   try {
-    const sessionToken = req.headers.authorization?.replace('Bearer ', '');
-    
+    const sessionToken = req.headers.authorization?.replace("Bearer ", "");
+
     if (sessionToken) {
       await supabase
-        .from('user_sessions')
+        .from("user_sessions")
         .delete()
-        .eq('session_token', sessionToken);
+        .eq("session_token", sessionToken);
     }
-    
-    res.json({ message: 'Logged out successfully' });
-    
+
+    res.json({ message: "Logged out successfully" });
   } catch (error) {
-    console.error('Logout error:', error);
-    res.status(500).json({ error: 'Internal server error' });
+    console.error("Logout error:", error);
+    res.status(500).json({ error: "Internal server error" });
   }
 };

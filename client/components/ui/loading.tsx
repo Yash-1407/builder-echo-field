@@ -11,25 +11,30 @@ interface LoadingProps {
 
 const sizeClasses = {
   sm: "h-4 w-4",
-  md: "h-8 w-8", 
-  lg: "h-12 w-12"
+  md: "h-8 w-8",
+  lg: "h-12 w-12",
 };
 
 const textSizeClasses = {
   sm: "text-sm",
   md: "text-base",
-  lg: "text-lg"
+  lg: "text-lg",
 };
 
-export function Loading({ 
-  size = "md", 
-  variant = "spinner", 
-  text, 
-  className 
+export function Loading({
+  size = "md",
+  variant = "spinner",
+  text,
+  className,
 }: LoadingProps) {
   if (variant === "carbon") {
     return (
-      <div className={cn("flex flex-col items-center justify-center gap-3", className)}>
+      <div
+        className={cn(
+          "flex flex-col items-center justify-center gap-3",
+          className,
+        )}
+      >
         <motion.div
           animate={{ rotate: 360 }}
           transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
@@ -38,7 +43,7 @@ export function Loading({
           <Leaf className="w-full h-full" />
         </motion.div>
         {text && (
-          <motion.p 
+          <motion.p
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.2 }}
@@ -53,7 +58,12 @@ export function Loading({
 
   if (variant === "pulse") {
     return (
-      <div className={cn("flex flex-col items-center justify-center gap-3", className)}>
+      <div
+        className={cn(
+          "flex flex-col items-center justify-center gap-3",
+          className,
+        )}
+      >
         <motion.div
           animate={{ scale: [1, 1.2, 1] }}
           transition={{ duration: 1.5, repeat: Infinity }}
@@ -69,7 +79,12 @@ export function Loading({
   }
 
   return (
-    <div className={cn("flex flex-col items-center justify-center gap-3", className)}>
+    <div
+      className={cn(
+        "flex flex-col items-center justify-center gap-3",
+        className,
+      )}
+    >
       <Loader2 className={cn("animate-spin text-primary", sizeClasses[size])} />
       {text && (
         <p className={cn("text-muted-foreground", textSizeClasses[size])}>

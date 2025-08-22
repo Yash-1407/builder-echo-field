@@ -40,7 +40,7 @@ export interface UserResponse {
  */
 export interface Activity {
   id: string;
-  type: 'transport' | 'energy' | 'food' | 'shopping';
+  type: "transport" | "energy" | "food" | "shopping";
   description: string;
   impact: number;
   unit: string;
@@ -70,7 +70,7 @@ export interface ActivityResponse {
 }
 
 export interface CreateActivityRequest {
-  type: 'transport' | 'energy' | 'food' | 'shopping';
+  type: "transport" | "energy" | "food" | "shopping";
   description: string;
   impact: number;
   unit?: string;

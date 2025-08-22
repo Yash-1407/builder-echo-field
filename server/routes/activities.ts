@@ -4,22 +4,24 @@ import { supabase, Activity } from "../lib/supabase";
 
 // Validation schemas
 const createActivitySchema = z.object({
-  type: z.enum(['transport', 'energy', 'food', 'shopping']),
+  type: z.enum(["transport", "energy", "food", "shopping"]),
   description: z.string().min(1, "Description is required"),
   impact: z.number().min(0, "Impact must be positive"),
   unit: z.string().default("kg CO₂"),
   date: z.string().datetime(),
   category: z.string().min(1, "Category is required"),
-  details: z.object({
-    distance: z.number().optional(),
-    vehicle_type: z.string().optional(),
-    energy_amount: z.number().optional(),
-    energy_source: z.string().optional(),
-    meal_type: z.string().optional(),
-    food_type: z.string().optional(),
-    item_type: z.string().optional(),
-    quantity: z.number().optional(),
-  }).default({}),
+  details: z
+    .object({
+      distance: z.number().optional(),
+      vehicle_type: z.string().optional(),
+      energy_amount: z.number().optional(),
+      energy_source: z.string().optional(),
+      meal_type: z.string().optional(),
+      food_type: z.string().optional(),
+      item_type: z.string().optional(),
+      quantity: z.number().optional(),
+    })
+    .default({}),
 });
 
 const updateActivitySchema = createActivitySchema.partial();
@@ -29,31 +31,28 @@ export const handleGetActivities: RequestHandler = async (req, res) => {
   try {
     const userId = req.user?.id;
     if (!userId) {
-      return res.status(401).json({ error: 'Not authenticated' });
+      return res.status(401).json({ error: "Not authenticated" });
     }
 
     const { limit, offset, type, startDate, endDate } = req.query;
-    
-    let query = supabase
-      .from('activities')
-      .select('*')
-      .eq('user_id', userId);
+
+    let query = supabase.from("activities").select("*").eq("user_id", userId);
 
     // Apply filters
-    if (type && typeof type === 'string') {
-      query = query.eq('type', type);
+    if (type && typeof type === "string") {
+      query = query.eq("type", type);
     }
 
-    if (startDate && typeof startDate === 'string') {
-      query = query.gte('date', startDate);
+    if (startDate && typeof startDate === "string") {
+      query = query.gte("date", startDate);
     }
 
-    if (endDate && typeof endDate === 'string') {
-      query = query.lte('date', endDate);
+    if (endDate && typeof endDate === "string") {
+      query = query.lte("date", endDate);
     }
 
     // Apply sorting (newest first)
-    query = query.order('date', { ascending: false });
+    query = query.order("date", { ascending: false });
 
     // Apply pagination
     const limitNum = limit ? parseInt(limit as string) : undefined;
@@ -66,24 +65,23 @@ export const handleGetActivities: RequestHandler = async (req, res) => {
     const { data: activities, error, count } = await query;
 
     if (error) {
-      console.error('Get activities error:', error);
-      return res.status(500).json({ error: 'Failed to fetch activities' });
+      console.error("Get activities error:", error);
+      return res.status(500).json({ error: "Failed to fetch activities" });
     }
 
     // Get total count for pagination
     const { count: totalCount } = await supabase
-      .from('activities')
-      .select('*', { count: 'exact', head: true })
-      .eq('user_id', userId);
+      .from("activities")
+      .select("*", { count: "exact", head: true })
+      .eq("user_id", userId);
 
     res.json({
       activities: activities || [],
       total: totalCount || 0,
     });
-
   } catch (error) {
-    console.error('Get activities error:', error);
-    res.status(500).json({ error: 'Internal server error' });
+    console.error("Get activities error:", error);
+    res.status(500).json({ error: "Internal server error" });
   }
 };
 
@@ -94,29 +92,28 @@ export const handleGetActivity: RequestHandler = async (req, res) => {
     const { id } = req.params;
 
     if (!userId) {
-      return res.status(401).json({ error: 'Not authenticated' });
+      return res.status(401).json({ error: "Not authenticated" });
     }
 
     const { data: activity, error } = await supabase
-      .from('activities')
-      .select('*')
-      .eq('id', id)
-      .eq('user_id', userId)
+      .from("activities")
+      .select("*")
+      .eq("id", id)
+      .eq("user_id", userId)
       .single();
 
     if (error) {
-      if (error.code === 'PGRST116') {
-        return res.status(404).json({ error: 'Activity not found' });
+      if (error.code === "PGRST116") {
+        return res.status(404).json({ error: "Activity not found" });
       }
-      console.error('Get activity error:', error);
-      return res.status(500).json({ error: 'Failed to fetch activity' });
+      console.error("Get activity error:", error);
+      return res.status(500).json({ error: "Failed to fetch activity" });
     }
 
     res.json({ activity });
-
   } catch (error) {
-    console.error('Get activity error:', error);
-    res.status(500).json({ error: 'Internal server error' });
+    console.error("Get activity error:", error);
+    res.status(500).json({ error: "Internal server error" });
   }
 };
 
@@ -125,13 +122,13 @@ export const handleCreateActivity: RequestHandler = async (req, res) => {
   try {
     const userId = req.user?.id;
     if (!userId) {
-      return res.status(401).json({ error: 'Not authenticated' });
+      return res.status(401).json({ error: "Not authenticated" });
     }
 
     const activityData = createActivitySchema.parse(req.body);
-    
+
     const { data: activity, error } = await supabase
-      .from('activities')
+      .from("activities")
       .insert({
         user_id: userId,
         type: activityData.type,
@@ -146,18 +143,17 @@ export const handleCreateActivity: RequestHandler = async (req, res) => {
       .single();
 
     if (error) {
-      console.error('Create activity error:', error);
-      return res.status(500).json({ error: 'Failed to create activity' });
+      console.error("Create activity error:", error);
+      return res.status(500).json({ error: "Failed to create activity" });
     }
 
     res.status(201).json({ activity });
-
   } catch (error) {
     if (error instanceof z.ZodError) {
       return res.status(400).json({ error: error.errors[0].message });
     }
-    console.error('Create activity error:', error);
-    res.status(500).json({ error: 'Internal server error' });
+    console.error("Create activity error:", error);
+    res.status(500).json({ error: "Internal server error" });
   }
 };
 
@@ -168,11 +164,11 @@ export const handleUpdateActivity: RequestHandler = async (req, res) => {
     const { id } = req.params;
 
     if (!userId) {
-      return res.status(401).json({ error: 'Not authenticated' });
+      return res.status(401).json({ error: "Not authenticated" });
     }
 
     const updates = updateActivitySchema.parse(req.body);
-    
+
     // Build update object
     const updateObj: any = {};
     if (updates.type) updateObj.type = updates.type;
@@ -184,29 +180,28 @@ export const handleUpdateActivity: RequestHandler = async (req, res) => {
     if (updates.details) updateObj.details = updates.details;
 
     const { data: activity, error } = await supabase
-      .from('activities')
+      .from("activities")
       .update(updateObj)
-      .eq('id', id)
-      .eq('user_id', userId)
+      .eq("id", id)
+      .eq("user_id", userId)
       .select()
       .single();
 
     if (error) {
-      if (error.code === 'PGRST116') {
-        return res.status(404).json({ error: 'Activity not found' });
+      if (error.code === "PGRST116") {
+        return res.status(404).json({ error: "Activity not found" });
       }
-      console.error('Update activity error:', error);
-      return res.status(500).json({ error: 'Failed to update activity' });
+      console.error("Update activity error:", error);
+      return res.status(500).json({ error: "Failed to update activity" });
     }
 
     res.json({ activity });
-
   } catch (error) {
     if (error instanceof z.ZodError) {
       return res.status(400).json({ error: error.errors[0].message });
     }
-    console.error('Update activity error:', error);
-    res.status(500).json({ error: 'Internal server error' });
+    console.error("Update activity error:", error);
+    res.status(500).json({ error: "Internal server error" });
   }
 };
 
@@ -217,25 +212,24 @@ export const handleDeleteActivity: RequestHandler = async (req, res) => {
     const { id } = req.params;
 
     if (!userId) {
-      return res.status(401).json({ error: 'Not authenticated' });
+      return res.status(401).json({ error: "Not authenticated" });
     }
 
     const { error } = await supabase
-      .from('activities')
+      .from("activities")
       .delete()
-      .eq('id', id)
-      .eq('user_id', userId);
+      .eq("id", id)
+      .eq("user_id", userId);
 
     if (error) {
-      console.error('Delete activity error:', error);
-      return res.status(500).json({ error: 'Failed to delete activity' });
+      console.error("Delete activity error:", error);
+      return res.status(500).json({ error: "Failed to delete activity" });
     }
 
-    res.json({ message: 'Activity deleted successfully' });
-
+    res.json({ message: "Activity deleted successfully" });
   } catch (error) {
-    console.error('Delete activity error:', error);
-    res.status(500).json({ error: 'Internal server error' });
+    console.error("Delete activity error:", error);
+    res.status(500).json({ error: "Internal server error" });
   }
 };
 
@@ -244,26 +238,26 @@ export const handleGetAnalytics: RequestHandler = async (req, res) => {
   try {
     const userId = req.user?.id;
     if (!userId) {
-      return res.status(401).json({ error: 'Not authenticated' });
+      return res.status(401).json({ error: "Not authenticated" });
     }
 
-    const { period = 'month' } = req.query;
-    
+    const { period = "month" } = req.query;
+
     // Calculate date range based on period
     const now = new Date();
     const startDate = new Date();
-    
+
     switch (period) {
-      case 'week':
+      case "week":
         startDate.setDate(now.getDate() - 7);
         break;
-      case 'month':
+      case "month":
         startDate.setMonth(now.getMonth() - 1);
         break;
-      case 'quarter':
+      case "quarter":
         startDate.setMonth(now.getMonth() - 3);
         break;
-      case 'year':
+      case "year":
         startDate.setFullYear(now.getFullYear() - 1);
         break;
       default:
@@ -272,45 +266,57 @@ export const handleGetAnalytics: RequestHandler = async (req, res) => {
 
     // Get activities for the specified period
     const { data: activities, error } = await supabase
-      .from('activities')
-      .select('*')
-      .eq('user_id', userId)
-      .gte('date', startDate.toISOString())
-      .order('date', { ascending: false });
+      .from("activities")
+      .select("*")
+      .eq("user_id", userId)
+      .gte("date", startDate.toISOString())
+      .order("date", { ascending: false });
 
     if (error) {
-      console.error('Get analytics error:', error);
-      return res.status(500).json({ error: 'Failed to fetch analytics' });
+      console.error("Get analytics error:", error);
+      return res.status(500).json({ error: "Failed to fetch analytics" });
     }
 
     // Calculate total footprint
-    const totalFootprint = activities.reduce((total, activity) => 
-      total + activity.impact, 0
+    const totalFootprint = activities.reduce(
+      (total, activity) => total + activity.impact,
+      0,
     );
 
     // Calculate footprint by category
-    const categoryTotals = activities.reduce((totals, activity) => {
-      if (!totals[activity.type]) {
-        totals[activity.type] = 0;
-      }
-      totals[activity.type] += activity.impact;
-      return totals;
-    }, {} as Record<string, number>);
+    const categoryTotals = activities.reduce(
+      (totals, activity) => {
+        if (!totals[activity.type]) {
+          totals[activity.type] = 0;
+        }
+        totals[activity.type] += activity.impact;
+        return totals;
+      },
+      {} as Record<string, number>,
+    );
 
     const footprintByCategory = [
-      { name: 'Transportation', value: categoryTotals.transport || 0, color: '#3b82f6' },
-      { name: 'Energy', value: categoryTotals.energy || 0, color: '#10b981' },
-      { name: 'Food', value: categoryTotals.food || 0, color: '#f59e0b' },
-      { name: 'Shopping', value: categoryTotals.shopping || 0, color: '#8b5cf6' },
-    ].filter(category => category.value > 0);
+      {
+        name: "Transportation",
+        value: categoryTotals.transport || 0,
+        color: "#3b82f6",
+      },
+      { name: "Energy", value: categoryTotals.energy || 0, color: "#10b981" },
+      { name: "Food", value: categoryTotals.food || 0, color: "#f59e0b" },
+      {
+        name: "Shopping",
+        value: categoryTotals.shopping || 0,
+        color: "#8b5cf6",
+      },
+    ].filter((category) => category.value > 0);
 
     // Calculate trend data (last 6 periods)
     const trendData = [];
     for (let i = 5; i >= 0; i--) {
       const periodStart = new Date();
       const periodEnd = new Date();
-      
-      if (period === 'week') {
+
+      if (period === "week") {
         periodStart.setDate(now.getDate() - (i + 1) * 7);
         periodEnd.setDate(now.getDate() - i * 7);
       } else {
@@ -318,19 +324,21 @@ export const handleGetAnalytics: RequestHandler = async (req, res) => {
         periodEnd.setMonth(now.getMonth() - i);
       }
 
-      const periodActivities = activities.filter(activity => {
+      const periodActivities = activities.filter((activity) => {
         const activityDate = new Date(activity.date);
         return activityDate >= periodStart && activityDate < periodEnd;
       });
 
-      const periodTotal = periodActivities.reduce((total, activity) => 
-        total + activity.impact, 0
+      const periodTotal = periodActivities.reduce(
+        (total, activity) => total + activity.impact,
+        0,
       );
 
       trendData.push({
-        name: period === 'week' 
-          ? `Week ${i + 1}` 
-          : periodStart.toLocaleDateString('en-US', { month: 'short' }),
+        name:
+          period === "week"
+            ? `Week ${i + 1}`
+            : periodStart.toLocaleDateString("en-US", { month: "short" }),
         value: Math.round(periodTotal * 100) / 100,
       });
     }
@@ -338,15 +346,15 @@ export const handleGetAnalytics: RequestHandler = async (req, res) => {
     res.json({
       period,
       totalFootprint: Math.round(totalFootprint * 100) / 100,
-      dailyAverage: Math.round((totalFootprint / (period === 'week' ? 7 : 30)) * 100) / 100,
+      dailyAverage:
+        Math.round((totalFootprint / (period === "week" ? 7 : 30)) * 100) / 100,
       activityCount: activities.length,
       footprintByCategory,
       trendData,
     });
-
   } catch (error) {
-    console.error('Get analytics error:', error);
-    res.status(500).json({ error: 'Internal server error' });
+    console.error("Get analytics error:", error);
+    res.status(500).json({ error: "Internal server error" });
   }
 };
 
@@ -355,26 +363,27 @@ export const handleGetRecentActivities: RequestHandler = async (req, res) => {
   try {
     const userId = req.user?.id;
     if (!userId) {
-      return res.status(401).json({ error: 'Not authenticated' });
+      return res.status(401).json({ error: "Not authenticated" });
     }
 
     const { data: activities, error } = await supabase
-      .from('activities')
-      .select('*')
-      .eq('user_id', userId)
-      .order('created_at', { ascending: false })
+      .from("activities")
+      .select("*")
+      .eq("user_id", userId)
+      .order("created_at", { ascending: false })
       .limit(10);
 
     if (error) {
-      console.error('Get recent activities error:', error);
-      return res.status(500).json({ error: 'Failed to fetch recent activities' });
+      console.error("Get recent activities error:", error);
+      return res
+        .status(500)
+        .json({ error: "Failed to fetch recent activities" });
     }
 
     res.json({ activities: activities || [] });
-
   } catch (error) {
-    console.error('Get recent activities error:', error);
-    res.status(500).json({ error: 'Internal server error' });
+    console.error("Get recent activities error:", error);
+    res.status(500).json({ error: "Internal server error" });
   }
 };
 
@@ -383,33 +392,32 @@ export const handleBulkDeleteActivities: RequestHandler = async (req, res) => {
   try {
     const userId = req.user?.id;
     if (!userId) {
-      return res.status(401).json({ error: 'Not authenticated' });
+      return res.status(401).json({ error: "Not authenticated" });
     }
 
     const { activityIds } = req.body;
-    
+
     if (!Array.isArray(activityIds) || activityIds.length === 0) {
-      return res.status(400).json({ error: 'Activity IDs array is required' });
+      return res.status(400).json({ error: "Activity IDs array is required" });
     }
 
     const { error } = await supabase
-      .from('activities')
+      .from("activities")
       .delete()
-      .eq('user_id', userId)
-      .in('id', activityIds);
+      .eq("user_id", userId)
+      .in("id", activityIds);
 
     if (error) {
-      console.error('Bulk delete activities error:', error);
-      return res.status(500).json({ error: 'Failed to delete activities' });
+      console.error("Bulk delete activities error:", error);
+      return res.status(500).json({ error: "Failed to delete activities" });
     }
 
-    res.json({ 
+    res.json({
       message: `Successfully deleted ${activityIds.length} activities`,
-      deletedCount: activityIds.length 
+      deletedCount: activityIds.length,
     });
-
   } catch (error) {
-    console.error('Bulk delete activities error:', error);
-    res.status(500).json({ error: 'Internal server error' });
+    console.error("Bulk delete activities error:", error);
+    res.status(500).json({ error: "Internal server error" });
   }
 };

@@ -10,27 +10,36 @@ interface ErrorDisplayProps {
   className?: string;
 }
 
-export function ErrorDisplay({ 
-  error, 
-  onRetry, 
+export function ErrorDisplay({
+  error,
+  onRetry,
   variant = "default",
-  className 
+  className,
 }: ErrorDisplayProps) {
-  const isNetworkError = error.toLowerCase().includes('network') || 
-                        error.toLowerCase().includes('fetch') ||
-                        error.toLowerCase().includes('connection');
+  const isNetworkError =
+    error.toLowerCase().includes("network") ||
+    error.toLowerCase().includes("fetch") ||
+    error.toLowerCase().includes("connection");
 
   if (variant === "minimal") {
     return (
       <motion.div
         initial={{ opacity: 0, scale: 0.95 }}
         animate={{ opacity: 1, scale: 1 }}
-        className={cn("flex items-center gap-2 text-sm text-destructive", className)}
+        className={cn(
+          "flex items-center gap-2 text-sm text-destructive",
+          className,
+        )}
       >
         <AlertTriangle className="h-4 w-4" />
         <span>{error}</span>
         {onRetry && (
-          <Button variant="ghost" size="sm" onClick={onRetry} className="h-6 px-2">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={onRetry}
+            className="h-6 px-2"
+          >
             <RefreshCw className="h-3 w-3" />
           </Button>
         )}
@@ -60,10 +69,9 @@ export function ErrorDisplay({
           {isNetworkError ? "Connection Issue" : "Something Went Wrong"}
         </h3>
         <p className="text-muted-foreground mb-4 max-w-md mx-auto">
-          {isNetworkError 
+          {isNetworkError
             ? "Please check your internet connection and try again."
-            : error
-          }
+            : error}
         </p>
         {onRetry && (
           <Button onClick={onRetry} variant="outline">
@@ -79,7 +87,10 @@ export function ErrorDisplay({
     <motion.div
       initial={{ opacity: 0, scale: 0.95 }}
       animate={{ opacity: 1, scale: 1 }}
-      className={cn("border border-destructive/20 rounded-lg p-4 bg-destructive/5", className)}
+      className={cn(
+        "border border-destructive/20 rounded-lg p-4 bg-destructive/5",
+        className,
+      )}
     >
       <div className="flex items-start gap-3">
         <AlertTriangle className="h-5 w-5 text-destructive mt-0.5 flex-shrink-0" />
@@ -115,12 +126,12 @@ interface EmptyStateProps {
   className?: string;
 }
 
-export function EmptyState({ 
-  title, 
-  description, 
-  action, 
+export function EmptyState({
+  title,
+  description,
+  action,
   icon: Icon = AlertTriangle,
-  className 
+  className,
 }: EmptyStateProps) {
   return (
     <motion.div
@@ -146,9 +157,7 @@ export function EmptyState({
           animate={{ opacity: 1 }}
           transition={{ delay: 0.2 }}
         >
-          <Button onClick={action.onClick}>
-            {action.label}
-          </Button>
+          <Button onClick={action.onClick}>{action.label}</Button>
         </motion.div>
       )}
     </motion.div>

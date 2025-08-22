@@ -6,7 +6,7 @@ import {
   rateLimit,
   sanitizeInput,
   securityHeaders,
-  detectSuspiciousActivity
+  detectSuspiciousActivity,
 } from "./middleware/validation";
 import { handleDemo } from "./routes/demo";
 import {
@@ -15,7 +15,7 @@ import {
   handleGetUser,
   handleUpdateProfile,
   handleLogout,
-  requireAuth
+  requireAuth,
 } from "./routes/auth";
 import {
   handleGetActivities,
@@ -25,7 +25,7 @@ import {
   handleDeleteActivity,
   handleGetAnalytics,
   handleGetRecentActivities,
-  handleBulkDeleteActivities
+  handleBulkDeleteActivities,
 } from "./routes/activities";
 
 export function createServer() {
@@ -40,14 +40,17 @@ export function createServer() {
   app.use(detectSuspiciousActivity);
 
   // Basic middleware
-  app.use(cors({
-    origin: process.env.NODE_ENV === 'production'
-      ? ['https://your-domain.com'] // Replace with your production domain
-      : true,
-    credentials: true
-  }));
-  app.use(express.json({ limit: '10mb' }));
-  app.use(express.urlencoded({ extended: true, limit: '10mb' }));
+  app.use(
+    cors({
+      origin:
+        process.env.NODE_ENV === "production"
+          ? ["https://your-domain.com"] // Replace with your production domain
+          : true,
+      credentials: true,
+    }),
+  );
+  app.use(express.json({ limit: "10mb" }));
+  app.use(express.urlencoded({ extended: true, limit: "10mb" }));
   app.use(sanitizeInput);
 
   // Health check
@@ -77,10 +80,17 @@ export function createServer() {
   app.delete("/api/activities", requireAuth, handleBulkDeleteActivities);
 
   // Error handling middleware
-  app.use((error: any, req: express.Request, res: express.Response, next: express.NextFunction) => {
-    console.error('Server error:', error);
-    res.status(500).json({ error: 'Internal server error' });
-  });
+  app.use(
+    (
+      error: any,
+      req: express.Request,
+      res: express.Response,
+      next: express.NextFunction,
+    ) => {
+      console.error("Server error:", error);
+      res.status(500).json({ error: "Internal server error" });
+    },
+  );
 
   return app;
 }

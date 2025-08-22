@@ -1,10 +1,22 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Loading } from "@/components/ui/loading";
@@ -20,7 +32,7 @@ import {
   Plus,
   Calculator,
   Lightbulb,
-  Clock
+  Clock,
 } from "lucide-react";
 import { motion } from "framer-motion";
 
@@ -34,51 +46,73 @@ export default function ActivityTracker() {
   const [transportForm, setTransportForm] = useState({
     vehicleType: "",
     distance: "",
-    description: ""
+    description: "",
   });
 
   const [energyForm, setEnergyForm] = useState({
     energySource: "",
     energyAmount: "",
-    description: ""
+    description: "",
   });
 
   const [foodForm, setFoodForm] = useState({
     mealType: "",
     foodType: "",
-    description: ""
+    description: "",
   });
 
   const [shoppingForm, setShoppingForm] = useState({
     itemType: "",
     quantity: "",
-    description: ""
+    description: "",
   });
 
   const calculateTransportImpact = (vehicleType: string, distance: number) => {
     const factors: { [key: string]: number } = {
-      "Car": 0.4, "Bus": 0.1, "Train": 0.05, "Bike": 0, "Walking": 0, "Plane": 0.9, "Taxi": 0.5
+      Car: 0.4,
+      Bus: 0.1,
+      Train: 0.05,
+      Bike: 0,
+      Walking: 0,
+      Plane: 0.9,
+      Taxi: 0.5,
     };
     return distance * (factors[vehicleType] || 0.4);
   };
 
   const calculateEnergyImpact = (energySource: string, amount: number) => {
     const factors: { [key: string]: number } = {
-      "Grid Electricity": 0.5, "Natural Gas": 0.2, "Solar": 0, "Wind": 0, "Oil": 0.7, "Coal": 0.9
+      "Grid Electricity": 0.5,
+      "Natural Gas": 0.2,
+      Solar: 0,
+      Wind: 0,
+      Oil: 0.7,
+      Coal: 0.9,
     };
     return amount * (factors[energySource] || 0.5);
   };
 
   const calculateFoodImpact = (foodType: string) => {
     const factors: { [key: string]: number } = {
-      "Beef": 6.0, "Pork": 3.0, "Chicken": 1.5, "Fish": 1.2, "Vegetarian": 0.8, "Vegan": 0.4, "Mixed": 2.0
+      Beef: 6.0,
+      Pork: 3.0,
+      Chicken: 1.5,
+      Fish: 1.2,
+      Vegetarian: 0.8,
+      Vegan: 0.4,
+      Mixed: 2.0,
     };
     return factors[foodType] || 1.0;
   };
 
   const calculateShoppingImpact = (itemType: string, quantity: number) => {
     const factors: { [key: string]: number } = {
-      "Clothing": 2.0, "Electronics": 5.0, "Books": 0.5, "Household": 1.5, "Food": 1.0, "Other": 1.0
+      Clothing: 2.0,
+      Electronics: 5.0,
+      Books: 0.5,
+      Household: 1.5,
+      Food: 1.0,
+      Other: 1.0,
     };
     return quantity * (factors[itemType] || 1.0);
   };
@@ -92,25 +126,32 @@ export default function ActivityTracker() {
 
     try {
       const distance = parseFloat(transportForm.distance);
-      const impact = calculateTransportImpact(transportForm.vehicleType, distance);
+      const impact = calculateTransportImpact(
+        transportForm.vehicleType,
+        distance,
+      );
 
       await addActivity({
         type: "transport",
-        description: transportForm.description || `${distance} miles by ${transportForm.vehicleType}`,
+        description:
+          transportForm.description ||
+          `${distance} miles by ${transportForm.vehicleType}`,
         impact: Math.round(impact * 100) / 100,
         unit: "kg CO₂",
         date: new Date().toISOString(),
         category: transportForm.vehicleType,
         details: {
           vehicle_type: transportForm.vehicleType,
-          distance: distance
-        }
+          distance: distance,
+        },
       });
 
       setTransportForm({ vehicleType: "", distance: "", description: "" });
     } catch (error) {
       console.error("Error adding transport activity:", error);
-      setSubmitError(error instanceof Error ? error.message : "Failed to add activity");
+      setSubmitError(
+        error instanceof Error ? error.message : "Failed to add activity",
+      );
     } finally {
       setIsLoading(false);
     }
@@ -129,21 +170,25 @@ export default function ActivityTracker() {
 
       await addActivity({
         type: "energy",
-        description: energyForm.description || `${amount} kWh from ${energyForm.energySource}`,
+        description:
+          energyForm.description ||
+          `${amount} kWh from ${energyForm.energySource}`,
         impact: Math.round(impact * 100) / 100,
         unit: "kg CO₂",
         date: new Date().toISOString(),
         category: energyForm.energySource,
         details: {
           energy_source: energyForm.energySource,
-          energy_amount: amount
-        }
+          energy_amount: amount,
+        },
       });
 
       setEnergyForm({ energySource: "", energyAmount: "", description: "" });
     } catch (error) {
       console.error("Error adding energy activity:", error);
-      setSubmitError(error instanceof Error ? error.message : "Failed to add activity");
+      setSubmitError(
+        error instanceof Error ? error.message : "Failed to add activity",
+      );
     } finally {
       setIsLoading(false);
     }
@@ -161,21 +206,24 @@ export default function ActivityTracker() {
 
       await addActivity({
         type: "food",
-        description: foodForm.description || `${foodForm.foodType} ${foodForm.mealType}`,
+        description:
+          foodForm.description || `${foodForm.foodType} ${foodForm.mealType}`,
         impact: Math.round(impact * 100) / 100,
         unit: "kg CO₂",
         date: new Date().toISOString(),
         category: foodForm.foodType,
         details: {
           meal_type: foodForm.mealType,
-          food_type: foodForm.foodType
-        }
+          food_type: foodForm.foodType,
+        },
       });
 
       setFoodForm({ mealType: "", foodType: "", description: "" });
     } catch (error) {
       console.error("Error adding food activity:", error);
-      setSubmitError(error instanceof Error ? error.message : "Failed to add activity");
+      setSubmitError(
+        error instanceof Error ? error.message : "Failed to add activity",
+      );
     } finally {
       setIsLoading(false);
     }
@@ -194,21 +242,25 @@ export default function ActivityTracker() {
 
       await addActivity({
         type: "shopping",
-        description: shoppingForm.description || `${quantity} ${shoppingForm.itemType} item${quantity > 1 ? 's' : ''}`,
+        description:
+          shoppingForm.description ||
+          `${quantity} ${shoppingForm.itemType} item${quantity > 1 ? "s" : ""}`,
         impact: Math.round(impact * 100) / 100,
         unit: "kg CO₂",
         date: new Date().toISOString(),
         category: shoppingForm.itemType,
         details: {
           item_type: shoppingForm.itemType,
-          quantity: quantity
-        }
+          quantity: quantity,
+        },
       });
 
       setShoppingForm({ itemType: "", quantity: "", description: "" });
     } catch (error) {
       console.error("Error adding shopping activity:", error);
-      setSubmitError(error instanceof Error ? error.message : "Failed to add activity");
+      setSubmitError(
+        error instanceof Error ? error.message : "Failed to add activity",
+      );
     } finally {
       setIsLoading(false);
     }
@@ -221,8 +273,12 @@ export default function ActivityTracker() {
       <div className="container mx-auto px-4 py-8 space-y-8">
         {/* Header */}
         <div className="text-center">
-          <h1 className="text-3xl font-bold text-foreground">Activity Tracker</h1>
-          <p className="text-muted-foreground mt-2">Log your daily activities and track their environmental impact</p>
+          <h1 className="text-3xl font-bold text-foreground">
+            Activity Tracker
+          </h1>
+          <p className="text-muted-foreground mt-2">
+            Log your daily activities and track their environmental impact
+          </p>
         </div>
 
         {/* Stats Overview */}
@@ -236,7 +292,9 @@ export default function ActivityTracker() {
               <CardContent className="pt-6">
                 <Clock className="h-8 w-8 mx-auto text-blue-600 mb-2" />
                 <p className="text-2xl font-bold">{state.activities.length}</p>
-                <p className="text-sm text-muted-foreground">Total Activities</p>
+                <p className="text-sm text-muted-foreground">
+                  Total Activities
+                </p>
               </CardContent>
             </Card>
           </motion.div>
@@ -249,7 +307,11 @@ export default function ActivityTracker() {
             <Card className="text-center">
               <CardContent className="pt-6">
                 <Calculator className="h-8 w-8 mx-auto text-green-600 mb-2" />
-                <p className="text-2xl font-bold">{categoryData.reduce((sum, cat) => sum + cat.value, 0).toFixed(1)}</p>
+                <p className="text-2xl font-bold">
+                  {categoryData
+                    .reduce((sum, cat) => sum + cat.value, 0)
+                    .toFixed(1)}
+                </p>
                 <p className="text-sm text-muted-foreground">Total CO₂ (kg)</p>
               </CardContent>
             </Card>
@@ -263,7 +325,15 @@ export default function ActivityTracker() {
             <Card className="text-center">
               <CardContent className="pt-6">
                 <Lightbulb className="h-8 w-8 mx-auto text-yellow-600 mb-2" />
-                <p className="text-2xl font-bold">{state.activities.filter(a => new Date(a.date).toDateString() === new Date().toDateString()).length}</p>
+                <p className="text-2xl font-bold">
+                  {
+                    state.activities.filter(
+                      (a) =>
+                        new Date(a.date).toDateString() ===
+                        new Date().toDateString(),
+                    ).length
+                  }
+                </p>
                 <p className="text-sm text-muted-foreground">Today's Logs</p>
               </CardContent>
             </Card>
@@ -277,12 +347,18 @@ export default function ActivityTracker() {
             <Card className="text-center">
               <CardContent className="pt-6">
                 <Plus className="h-8 w-8 mx-auto text-purple-600 mb-2" />
-                <p className="text-2xl font-bold">{Math.max(0, 7 - state.activities.filter(a => {
-                  const activityDate = new Date(a.date);
-                  const weekAgo = new Date();
-                  weekAgo.setDate(weekAgo.getDate() - 7);
-                  return activityDate >= weekAgo;
-                }).length)}</p>
+                <p className="text-2xl font-bold">
+                  {Math.max(
+                    0,
+                    7 -
+                      state.activities.filter((a) => {
+                        const activityDate = new Date(a.date);
+                        const weekAgo = new Date();
+                        weekAgo.setDate(weekAgo.getDate() - 7);
+                        return activityDate >= weekAgo;
+                      }).length,
+                  )}
+                </p>
                 <p className="text-sm text-muted-foreground">Weekly Goal</p>
               </CardContent>
             </Card>
@@ -304,25 +380,38 @@ export default function ActivityTracker() {
                     Log New Activity
                   </CardTitle>
                   <CardDescription>
-                    Select an activity type and fill in the details to track your carbon footprint
+                    Select an activity type and fill in the details to track
+                    your carbon footprint
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
                   <Tabs value={activeTab} onValueChange={setActiveTab}>
                     <TabsList className="grid w-full grid-cols-4">
-                      <TabsTrigger value="transport" className="flex items-center gap-2">
+                      <TabsTrigger
+                        value="transport"
+                        className="flex items-center gap-2"
+                      >
                         <Car className="h-4 w-4" />
                         Transport
                       </TabsTrigger>
-                      <TabsTrigger value="energy" className="flex items-center gap-2">
+                      <TabsTrigger
+                        value="energy"
+                        className="flex items-center gap-2"
+                      >
                         <Zap className="h-4 w-4" />
                         Energy
                       </TabsTrigger>
-                      <TabsTrigger value="food" className="flex items-center gap-2">
+                      <TabsTrigger
+                        value="food"
+                        className="flex items-center gap-2"
+                      >
                         <Utensils className="h-4 w-4" />
                         Food
                       </TabsTrigger>
-                      <TabsTrigger value="shopping" className="flex items-center gap-2">
+                      <TabsTrigger
+                        value="shopping"
+                        className="flex items-center gap-2"
+                      >
                         <ShoppingBag className="h-4 w-4" />
                         Shopping
                       </TabsTrigger>
@@ -330,11 +419,22 @@ export default function ActivityTracker() {
 
                     {/* Transportation Form */}
                     <TabsContent value="transport" className="space-y-4">
-                      <form onSubmit={handleTransportSubmit} className="space-y-4">
+                      <form
+                        onSubmit={handleTransportSubmit}
+                        className="space-y-4"
+                      >
                         <div className="grid grid-cols-2 gap-4">
                           <div className="space-y-2">
                             <Label htmlFor="vehicle-type">Vehicle Type</Label>
-                            <Select value={transportForm.vehicleType} onValueChange={(value) => setTransportForm(prev => ({ ...prev, vehicleType: value }))}>
+                            <Select
+                              value={transportForm.vehicleType}
+                              onValueChange={(value) =>
+                                setTransportForm((prev) => ({
+                                  ...prev,
+                                  vehicleType: value,
+                                }))
+                              }
+                            >
                               <SelectTrigger>
                                 <SelectValue placeholder="Select vehicle" />
                               </SelectTrigger>
@@ -355,28 +455,47 @@ export default function ActivityTracker() {
                               id="distance"
                               type="number"
                               value={transportForm.distance}
-                              onChange={(e) => setTransportForm(prev => ({ ...prev, distance: e.target.value }))}
+                              onChange={(e) =>
+                                setTransportForm((prev) => ({
+                                  ...prev,
+                                  distance: e.target.value,
+                                }))
+                              }
                               placeholder="0.0"
                             />
                           </div>
                         </div>
                         <div className="space-y-2">
-                          <Label htmlFor="transport-description">Description (Optional)</Label>
+                          <Label htmlFor="transport-description">
+                            Description (Optional)
+                          </Label>
                           <Textarea
                             id="transport-description"
                             value={transportForm.description}
-                            onChange={(e) => setTransportForm(prev => ({ ...prev, description: e.target.value }))}
+                            onChange={(e) =>
+                              setTransportForm((prev) => ({
+                                ...prev,
+                                description: e.target.value,
+                              }))
+                            }
                             placeholder="Add details about your trip..."
                           />
                         </div>
-                        {transportForm.vehicleType && transportForm.distance && (
-                          <div className="p-4 bg-muted rounded-lg">
-                            <p className="text-sm text-muted-foreground">Estimated Impact:</p>
-                            <p className="text-lg font-semibold text-foreground">
-                              {calculateTransportImpact(transportForm.vehicleType, parseFloat(transportForm.distance) || 0).toFixed(2)} kg CO₂
-                            </p>
-                          </div>
-                        )}
+                        {transportForm.vehicleType &&
+                          transportForm.distance && (
+                            <div className="p-4 bg-muted rounded-lg">
+                              <p className="text-sm text-muted-foreground">
+                                Estimated Impact:
+                              </p>
+                              <p className="text-lg font-semibold text-foreground">
+                                {calculateTransportImpact(
+                                  transportForm.vehicleType,
+                                  parseFloat(transportForm.distance) || 0,
+                                ).toFixed(2)}{" "}
+                                kg CO₂
+                              </p>
+                            </div>
+                          )}
                         {submitError && (
                           <ErrorDisplay
                             error={submitError}
@@ -384,7 +503,15 @@ export default function ActivityTracker() {
                             onRetry={() => setSubmitError(null)}
                           />
                         )}
-                        <Button type="submit" disabled={isLoading || !transportForm.vehicleType || !transportForm.distance} className="w-full">
+                        <Button
+                          type="submit"
+                          disabled={
+                            isLoading ||
+                            !transportForm.vehicleType ||
+                            !transportForm.distance
+                          }
+                          className="w-full"
+                        >
                           {isLoading && <Loading size="sm" className="mr-2" />}
                           {isLoading ? "Adding..." : "Add Transport Activity"}
                         </Button>
@@ -397,13 +524,25 @@ export default function ActivityTracker() {
                         <div className="grid grid-cols-2 gap-4">
                           <div className="space-y-2">
                             <Label htmlFor="energy-source">Energy Source</Label>
-                            <Select value={energyForm.energySource} onValueChange={(value) => setEnergyForm(prev => ({ ...prev, energySource: value }))}>
+                            <Select
+                              value={energyForm.energySource}
+                              onValueChange={(value) =>
+                                setEnergyForm((prev) => ({
+                                  ...prev,
+                                  energySource: value,
+                                }))
+                              }
+                            >
                               <SelectTrigger>
                                 <SelectValue placeholder="Select source" />
                               </SelectTrigger>
                               <SelectContent>
-                                <SelectItem value="Grid Electricity">Grid Electricity</SelectItem>
-                                <SelectItem value="Natural Gas">Natural Gas</SelectItem>
+                                <SelectItem value="Grid Electricity">
+                                  Grid Electricity
+                                </SelectItem>
+                                <SelectItem value="Natural Gas">
+                                  Natural Gas
+                                </SelectItem>
                                 <SelectItem value="Solar">Solar</SelectItem>
                                 <SelectItem value="Wind">Wind</SelectItem>
                                 <SelectItem value="Oil">Oil</SelectItem>
@@ -417,29 +556,55 @@ export default function ActivityTracker() {
                               id="energy-amount"
                               type="number"
                               value={energyForm.energyAmount}
-                              onChange={(e) => setEnergyForm(prev => ({ ...prev, energyAmount: e.target.value }))}
+                              onChange={(e) =>
+                                setEnergyForm((prev) => ({
+                                  ...prev,
+                                  energyAmount: e.target.value,
+                                }))
+                              }
                               placeholder="0.0"
                             />
                           </div>
                         </div>
                         <div className="space-y-2">
-                          <Label htmlFor="energy-description">Description (Optional)</Label>
+                          <Label htmlFor="energy-description">
+                            Description (Optional)
+                          </Label>
                           <Textarea
                             id="energy-description"
                             value={energyForm.description}
-                            onChange={(e) => setEnergyForm(prev => ({ ...prev, description: e.target.value }))}
+                            onChange={(e) =>
+                              setEnergyForm((prev) => ({
+                                ...prev,
+                                description: e.target.value,
+                              }))
+                            }
                             placeholder="Add details about energy usage..."
                           />
                         </div>
                         {energyForm.energySource && energyForm.energyAmount && (
                           <div className="p-4 bg-muted rounded-lg">
-                            <p className="text-sm text-muted-foreground">Estimated Impact:</p>
+                            <p className="text-sm text-muted-foreground">
+                              Estimated Impact:
+                            </p>
                             <p className="text-lg font-semibold text-foreground">
-                              {calculateEnergyImpact(energyForm.energySource, parseFloat(energyForm.energyAmount) || 0).toFixed(2)} kg CO₂
+                              {calculateEnergyImpact(
+                                energyForm.energySource,
+                                parseFloat(energyForm.energyAmount) || 0,
+                              ).toFixed(2)}{" "}
+                              kg CO₂
                             </p>
                           </div>
                         )}
-                        <Button type="submit" disabled={isLoading || !energyForm.energySource || !energyForm.energyAmount} className="w-full">
+                        <Button
+                          type="submit"
+                          disabled={
+                            isLoading ||
+                            !energyForm.energySource ||
+                            !energyForm.energyAmount
+                          }
+                          className="w-full"
+                        >
                           {isLoading ? "Adding..." : "Add Energy Activity"}
                         </Button>
                       </form>
@@ -451,12 +616,22 @@ export default function ActivityTracker() {
                         <div className="grid grid-cols-2 gap-4">
                           <div className="space-y-2">
                             <Label htmlFor="meal-type">Meal Type</Label>
-                            <Select value={foodForm.mealType} onValueChange={(value) => setFoodForm(prev => ({ ...prev, mealType: value }))}>
+                            <Select
+                              value={foodForm.mealType}
+                              onValueChange={(value) =>
+                                setFoodForm((prev) => ({
+                                  ...prev,
+                                  mealType: value,
+                                }))
+                              }
+                            >
                               <SelectTrigger>
                                 <SelectValue placeholder="Select meal" />
                               </SelectTrigger>
                               <SelectContent>
-                                <SelectItem value="Breakfast">Breakfast</SelectItem>
+                                <SelectItem value="Breakfast">
+                                  Breakfast
+                                </SelectItem>
                                 <SelectItem value="Lunch">Lunch</SelectItem>
                                 <SelectItem value="Dinner">Dinner</SelectItem>
                                 <SelectItem value="Snack">Snack</SelectItem>
@@ -465,7 +640,15 @@ export default function ActivityTracker() {
                           </div>
                           <div className="space-y-2">
                             <Label htmlFor="food-type">Primary Food</Label>
-                            <Select value={foodForm.foodType} onValueChange={(value) => setFoodForm(prev => ({ ...prev, foodType: value }))}>
+                            <Select
+                              value={foodForm.foodType}
+                              onValueChange={(value) =>
+                                setFoodForm((prev) => ({
+                                  ...prev,
+                                  foodType: value,
+                                }))
+                              }
+                            >
                               <SelectTrigger>
                                 <SelectValue placeholder="Select food type" />
                               </SelectTrigger>
@@ -474,7 +657,9 @@ export default function ActivityTracker() {
                                 <SelectItem value="Pork">Pork</SelectItem>
                                 <SelectItem value="Chicken">Chicken</SelectItem>
                                 <SelectItem value="Fish">Fish</SelectItem>
-                                <SelectItem value="Vegetarian">Vegetarian</SelectItem>
+                                <SelectItem value="Vegetarian">
+                                  Vegetarian
+                                </SelectItem>
                                 <SelectItem value="Vegan">Vegan</SelectItem>
                                 <SelectItem value="Mixed">Mixed</SelectItem>
                               </SelectContent>
@@ -482,23 +667,43 @@ export default function ActivityTracker() {
                           </div>
                         </div>
                         <div className="space-y-2">
-                          <Label htmlFor="food-description">Description (Optional)</Label>
+                          <Label htmlFor="food-description">
+                            Description (Optional)
+                          </Label>
                           <Textarea
                             id="food-description"
                             value={foodForm.description}
-                            onChange={(e) => setFoodForm(prev => ({ ...prev, description: e.target.value }))}
+                            onChange={(e) =>
+                              setFoodForm((prev) => ({
+                                ...prev,
+                                description: e.target.value,
+                              }))
+                            }
                             placeholder="Add details about your meal..."
                           />
                         </div>
                         {foodForm.foodType && (
                           <div className="p-4 bg-muted rounded-lg">
-                            <p className="text-sm text-muted-foreground">Estimated Impact:</p>
+                            <p className="text-sm text-muted-foreground">
+                              Estimated Impact:
+                            </p>
                             <p className="text-lg font-semibold text-foreground">
-                              {calculateFoodImpact(foodForm.foodType).toFixed(2)} kg CO₂
+                              {calculateFoodImpact(foodForm.foodType).toFixed(
+                                2,
+                              )}{" "}
+                              kg CO₂
                             </p>
                           </div>
                         )}
-                        <Button type="submit" disabled={isLoading || !foodForm.mealType || !foodForm.foodType} className="w-full">
+                        <Button
+                          type="submit"
+                          disabled={
+                            isLoading ||
+                            !foodForm.mealType ||
+                            !foodForm.foodType
+                          }
+                          className="w-full"
+                        >
                           {isLoading ? "Adding..." : "Add Food Activity"}
                         </Button>
                       </form>
@@ -506,19 +711,36 @@ export default function ActivityTracker() {
 
                     {/* Shopping Form */}
                     <TabsContent value="shopping" className="space-y-4">
-                      <form onSubmit={handleShoppingSubmit} className="space-y-4">
+                      <form
+                        onSubmit={handleShoppingSubmit}
+                        className="space-y-4"
+                      >
                         <div className="grid grid-cols-2 gap-4">
                           <div className="space-y-2">
                             <Label htmlFor="item-type">Item Category</Label>
-                            <Select value={shoppingForm.itemType} onValueChange={(value) => setShoppingForm(prev => ({ ...prev, itemType: value }))}>
+                            <Select
+                              value={shoppingForm.itemType}
+                              onValueChange={(value) =>
+                                setShoppingForm((prev) => ({
+                                  ...prev,
+                                  itemType: value,
+                                }))
+                              }
+                            >
                               <SelectTrigger>
                                 <SelectValue placeholder="Select category" />
                               </SelectTrigger>
                               <SelectContent>
-                                <SelectItem value="Clothing">Clothing</SelectItem>
-                                <SelectItem value="Electronics">Electronics</SelectItem>
+                                <SelectItem value="Clothing">
+                                  Clothing
+                                </SelectItem>
+                                <SelectItem value="Electronics">
+                                  Electronics
+                                </SelectItem>
                                 <SelectItem value="Books">Books</SelectItem>
-                                <SelectItem value="Household">Household</SelectItem>
+                                <SelectItem value="Household">
+                                  Household
+                                </SelectItem>
                                 <SelectItem value="Food">Food</SelectItem>
                                 <SelectItem value="Other">Other</SelectItem>
                               </SelectContent>
@@ -530,29 +752,55 @@ export default function ActivityTracker() {
                               id="quantity"
                               type="number"
                               value={shoppingForm.quantity}
-                              onChange={(e) => setShoppingForm(prev => ({ ...prev, quantity: e.target.value }))}
+                              onChange={(e) =>
+                                setShoppingForm((prev) => ({
+                                  ...prev,
+                                  quantity: e.target.value,
+                                }))
+                              }
                               placeholder="1"
                             />
                           </div>
                         </div>
                         <div className="space-y-2">
-                          <Label htmlFor="shopping-description">Description (Optional)</Label>
+                          <Label htmlFor="shopping-description">
+                            Description (Optional)
+                          </Label>
                           <Textarea
                             id="shopping-description"
                             value={shoppingForm.description}
-                            onChange={(e) => setShoppingForm(prev => ({ ...prev, description: e.target.value }))}
+                            onChange={(e) =>
+                              setShoppingForm((prev) => ({
+                                ...prev,
+                                description: e.target.value,
+                              }))
+                            }
                             placeholder="Add details about your purchase..."
                           />
                         </div>
                         {shoppingForm.itemType && shoppingForm.quantity && (
                           <div className="p-4 bg-muted rounded-lg">
-                            <p className="text-sm text-muted-foreground">Estimated Impact:</p>
+                            <p className="text-sm text-muted-foreground">
+                              Estimated Impact:
+                            </p>
                             <p className="text-lg font-semibold text-foreground">
-                              {calculateShoppingImpact(shoppingForm.itemType, parseInt(shoppingForm.quantity) || 0).toFixed(2)} kg CO₂
+                              {calculateShoppingImpact(
+                                shoppingForm.itemType,
+                                parseInt(shoppingForm.quantity) || 0,
+                              ).toFixed(2)}{" "}
+                              kg CO₂
                             </p>
                           </div>
                         )}
-                        <Button type="submit" disabled={isLoading || !shoppingForm.itemType || !shoppingForm.quantity} className="w-full">
+                        <Button
+                          type="submit"
+                          disabled={
+                            isLoading ||
+                            !shoppingForm.itemType ||
+                            !shoppingForm.quantity
+                          }
+                          className="w-full"
+                        >
                           {isLoading ? "Adding..." : "Add Shopping Activity"}
                         </Button>
                       </form>
@@ -597,13 +845,19 @@ export default function ActivityTracker() {
                 </CardHeader>
                 <CardContent className="space-y-3">
                   <div className="p-3 rounded-lg bg-green-50 dark:bg-green-950/20">
-                    <p className="text-sm font-medium text-green-800 dark:text-green-200">🚲 Try cycling or walking for short trips</p>
+                    <p className="text-sm font-medium text-green-800 dark:text-green-200">
+                      🚲 Try cycling or walking for short trips
+                    </p>
                   </div>
                   <div className="p-3 rounded-lg bg-blue-50 dark:bg-blue-950/20">
-                    <p className="text-sm font-medium text-blue-800 dark:text-blue-200">💡 Switch to LED bulbs to save energy</p>
+                    <p className="text-sm font-medium text-blue-800 dark:text-blue-200">
+                      💡 Switch to LED bulbs to save energy
+                    </p>
                   </div>
                   <div className="p-3 rounded-lg bg-orange-50 dark:bg-orange-950/20">
-                    <p className="text-sm font-medium text-orange-800 dark:text-orange-200">🥬 Try plant-based meals twice a week</p>
+                    <p className="text-sm font-medium text-orange-800 dark:text-orange-200">
+                      🥬 Try plant-based meals twice a week
+                    </p>
                   </div>
                 </CardContent>
               </Card>

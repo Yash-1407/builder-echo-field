@@ -27,11 +27,46 @@ const App = () => (
         <BrowserRouter>
           <Routes>
             <Route path="/" element={<Index />} />
-            <Route path="/dashboard" element={<Layout><Dashboard /></Layout>} />
-            <Route path="/activity" element={<Layout><ActivityTracker /></Layout>} />
-            <Route path="/analytics" element={<Layout><Analytics /></Layout>} />
-            <Route path="/community" element={<Layout><CommunityHub /></Layout>} />
-            <Route path="/profile" element={<Layout><Profile /></Layout>} />
+            <Route
+              path="/dashboard"
+              element={
+                <Layout>
+                  <Dashboard />
+                </Layout>
+              }
+            />
+            <Route
+              path="/activity"
+              element={
+                <Layout>
+                  <ActivityTracker />
+                </Layout>
+              }
+            />
+            <Route
+              path="/analytics"
+              element={
+                <Layout>
+                  <Analytics />
+                </Layout>
+              }
+            />
+            <Route
+              path="/community"
+              element={
+                <Layout>
+                  <CommunityHub />
+                </Layout>
+              }
+            />
+            <Route
+              path="/profile"
+              element={
+                <Layout>
+                  <Profile />
+                </Layout>
+              }
+            />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>
