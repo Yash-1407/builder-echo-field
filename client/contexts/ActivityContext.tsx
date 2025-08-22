@@ -118,6 +118,21 @@ export const ActivityProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     setupApiInterceptors();
   }, []);
 
+  // Real-time polling for updates
+  useEffect(() => {
+    if (!state.isAuthenticated) return;
+
+    const pollInterval = setInterval(() => {
+      // Only poll if user is on the page (document is visible)
+      if (document.visibilityState === 'visible') {
+        refreshActivities();
+        refreshAnalytics();
+      }
+    }, 30000); // Poll every 30 seconds
+
+    return () => clearInterval(pollInterval);
+  }, [state.isAuthenticated]);
+
   // Initialize authentication state
   useEffect(() => {
     const initializeAuth = async () => {
