@@ -25,6 +25,9 @@ import {
 export function createServer() {
   const app = express();
 
+  // Initialize database on startup (async, non-blocking)
+  initializeDatabase();
+
   // Middleware
   app.use(cors());
   app.use(express.json());
