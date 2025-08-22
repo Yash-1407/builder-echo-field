@@ -14,7 +14,6 @@ import ActivityTracker from "./pages/ActivityTracker";
 import Analytics from "./pages/Analytics";
 import CommunityHub from "./pages/CommunityHub";
 import Profile from "./pages/Profile";
-import AdminPanel from "./pages/AdminPanel";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -33,7 +32,6 @@ const App = () => (
             <Route path="/analytics" element={<Layout><Analytics /></Layout>} />
             <Route path="/community" element={<Layout><CommunityHub /></Layout>} />
             <Route path="/profile" element={<Layout><Profile /></Layout>} />
-            <Route path="/admin" element={<Layout><AdminPanel /></Layout>} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>
