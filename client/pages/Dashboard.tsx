@@ -150,33 +150,33 @@ export default function Dashboard() {
         >
           <StatsCard
             title="Total Footprint"
-            value="6.0 tons"
-            change="-15% vs last month"
-            changeType="positive"
+            value={`${totalFootprint.toFixed(1)} tons`}
+            change={totalFootprint < monthlyTarget ? "-15% vs last month" : "+5% vs last month"}
+            changeType={totalFootprint < monthlyTarget ? "positive" : "negative"}
             icon={Leaf}
             description="CO₂ equivalent this month"
           />
           <StatsCard
             title="Daily Average"
-            value="0.20 tons"
-            change="-8% vs last week"
-            changeType="positive"
+            value={`${dailyAverage.toFixed(2)} tons`}
+            change={dailyAverage < 0.15 ? "-8% vs last week" : "+3% vs last week"}
+            changeType={dailyAverage < 0.15 ? "positive" : "negative"}
             icon={TrendingDown}
             description="CO₂ per day"
           />
           <StatsCard
             title="Goal Progress"
-            value="75%"
-            change="On track"
-            changeType="positive"
+            value={`${Math.round(goalProgress)}%`}
+            change={goalProgress > 50 ? "On track" : "Needs attention"}
+            changeType={goalProgress > 50 ? "positive" : "negative"}
             icon={Target}
             description="Monthly reduction target"
           />
           <StatsCard
             title="Eco Score"
-            value="842"
-            change="+12 points"
-            changeType="positive"
+            value={ecoScore.toString()}
+            change={ecoScore > 600 ? "+12 points" : "-5 points"}
+            changeType={ecoScore > 600 ? "positive" : "negative"}
             icon={Award}
             description="Sustainability rating"
           />
