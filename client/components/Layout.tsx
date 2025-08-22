@@ -31,7 +31,6 @@ export default function Layout({ children }: LayoutProps) {
     { name: "Analytics", href: "/analytics", icon: TrendingUp },
     { name: "Community", href: "/community", icon: Users },
     { name: "Profile", href: "/profile", icon: User },
-    { name: "Admin", href: "/admin", icon: Settings },
   ];
 
   const toggleTheme = () => {
