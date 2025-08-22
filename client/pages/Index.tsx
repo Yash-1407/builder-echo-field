@@ -4,25 +4,30 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { 
-  Leaf, 
-  TrendingDown, 
-  Users, 
-  Award, 
-  BarChart3, 
-  Target, 
-  Globe, 
+import AuthModal from "@/components/AuthModal";
+import { useActivity } from "@/contexts/ActivityContext";
+import {
+  Leaf,
+  TrendingDown,
+  Users,
+  Award,
+  BarChart3,
+  Target,
+  Globe,
   Zap,
   ChevronRight,
   Star,
   ArrowRight,
   Play,
-  CheckCircle
+  CheckCircle,
+  LogOut
 } from "lucide-react";
 import { motion } from "framer-motion";
 
 export default function Index() {
   const [isVideoPlaying, setIsVideoPlaying] = useState(false);
+  const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
+  const { state, logout } = useActivity();
 
   const features = [
     {
