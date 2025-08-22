@@ -186,11 +186,13 @@ export default function ActivityTracker() {
     if (!shoppingForm.itemType || !shoppingForm.quantity) return;
 
     setIsLoading(true);
+    setSubmitError(null);
+
     try {
       const quantity = parseInt(shoppingForm.quantity);
       const impact = calculateShoppingImpact(shoppingForm.itemType, quantity);
 
-      addActivity({
+      await addActivity({
         type: "shopping",
         description: shoppingForm.description || `${quantity} ${shoppingForm.itemType} item${quantity > 1 ? 's' : ''}`,
         impact: Math.round(impact * 100) / 100,
@@ -198,7 +200,7 @@ export default function ActivityTracker() {
         date: new Date().toISOString(),
         category: shoppingForm.itemType,
         details: {
-          itemType: shoppingForm.itemType,
+          item_type: shoppingForm.itemType,
           quantity: quantity
         }
       });
@@ -206,6 +208,7 @@ export default function ActivityTracker() {
       setShoppingForm({ itemType: "", quantity: "", description: "" });
     } catch (error) {
       console.error("Error adding shopping activity:", error);
+      setSubmitError(error instanceof Error ? error.message : "Failed to add activity");
     } finally {
       setIsLoading(false);
     }
