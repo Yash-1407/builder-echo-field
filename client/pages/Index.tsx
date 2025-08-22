@@ -1,7 +1,13 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import AuthModal from "@/components/AuthModal";
@@ -20,7 +26,7 @@ import {
   ArrowRight,
   Play,
   CheckCircle,
-  LogOut
+  LogOut,
 } from "lucide-react";
 import { motion } from "framer-motion";
 
@@ -33,33 +39,39 @@ export default function Index() {
     {
       icon: BarChart3,
       title: "Smart Tracking",
-      description: "AI-powered carbon footprint monitoring across all your daily activities"
+      description:
+        "AI-powered carbon footprint monitoring across all your daily activities",
     },
     {
       icon: TrendingDown,
-      title: "Reduction Analytics", 
-      description: "Detailed insights and personalized recommendations to minimize your impact"
+      title: "Reduction Analytics",
+      description:
+        "Detailed insights and personalized recommendations to minimize your impact",
     },
     {
       icon: Users,
       title: "Community Challenges",
-      description: "Join eco-challenges and compete with friends for a sustainable future"
+      description:
+        "Join eco-challenges and compete with friends for a sustainable future",
     },
     {
       icon: Award,
       title: "Gamification",
-      description: "Earn badges, unlock achievements, and climb the sustainability leaderboard"
+      description:
+        "Earn badges, unlock achievements, and climb the sustainability leaderboard",
     },
     {
       icon: Target,
       title: "Goal Setting",
-      description: "Set and track personal carbon reduction targets with expert guidance"
+      description:
+        "Set and track personal carbon reduction targets with expert guidance",
     },
     {
       icon: Globe,
       title: "Global Impact",
-      description: "See how your actions contribute to worldwide sustainability efforts"
-    }
+      description:
+        "See how your actions contribute to worldwide sustainability efforts",
+    },
   ];
 
   const testimonials = [
@@ -67,53 +79,60 @@ export default function Index() {
       name: "Sarah Chen",
       role: "Environmental Advocate",
       avatar: "/placeholder.svg",
-      content: "CarbonMeter transformed how I think about daily choices. I've reduced my footprint by 40% in just 3 months!",
-      rating: 5
+      content:
+        "CarbonMeter transformed how I think about daily choices. I've reduced my footprint by 40% in just 3 months!",
+      rating: 5,
     },
     {
       name: "Marcus Johnson",
       role: "Sustainability Manager",
-      avatar: "/placeholder.svg", 
-      content: "The analytics are incredible. Finally, a tool that makes carbon tracking simple and engaging for our entire team.",
-      rating: 5
+      avatar: "/placeholder.svg",
+      content:
+        "The analytics are incredible. Finally, a tool that makes carbon tracking simple and engaging for our entire team.",
+      rating: 5,
     },
     {
       name: "Elena Rodriguez",
       role: "Eco Enthusiast",
       avatar: "/placeholder.svg",
-      content: "Love the community features! Competing in eco-challenges with friends makes sustainability fun and social.",
-      rating: 5
-    }
+      content:
+        "Love the community features! Competing in eco-challenges with friends makes sustainability fun and social.",
+      rating: 5,
+    },
   ];
 
   const stats = [
     { number: "50K+", label: "Active Users" },
     { number: "2.5M", label: "CO₂ Tons Saved" },
     { number: "180+", label: "Countries" },
-    { number: "4.9/5", label: "User Rating" }
+    { number: "4.9/5", label: "User Rating" },
   ];
 
   const howItWorks = [
     {
       step: 1,
       title: "Track Activities",
-      description: "Log your daily activities like commuting, energy use, and consumption"
+      description:
+        "Log your daily activities like commuting, energy use, and consumption",
     },
     {
       step: 2,
       title: "Get Insights",
-      description: "Receive AI-powered analysis and personalized sustainability recommendations"
+      description:
+        "Receive AI-powered analysis and personalized sustainability recommendations",
     },
     {
       step: 3,
       title: "Take Action",
-      description: "Implement changes, join challenges, and watch your carbon footprint shrink"
+      description:
+        "Implement changes, join challenges, and watch your carbon footprint shrink",
     },
     {
       step: 4,
       title: "Share Impact",
-      description: "Celebrate achievements with the community and inspire others to join"
-    }
+      description:
+        "Celebrate achievements with the community and inspire others to join",
+    },
   ];
 
   return (
@@ -129,17 +148,28 @@ export default function Index() {
             >
               <Leaf className="h-5 w-5 text-white" />
             </motion.div>
-            <span className="text-xl font-bold text-carbon-800">CarbonMeter</span>
+            <span className="text-xl font-bold text-carbon-800">
+              CarbonMeter
+            </span>
           </Link>
-          
+
           <nav className="hidden md:flex items-center space-x-6">
-            <a href="#features" className="text-sm font-medium text-gray-600 hover:text-carbon-600 transition-colors">
+            <a
+              href="#features"
+              className="text-sm font-medium text-gray-600 hover:text-carbon-600 transition-colors"
+            >
               Features
             </a>
-            <a href="#how-it-works" className="text-sm font-medium text-gray-600 hover:text-carbon-600 transition-colors">
+            <a
+              href="#how-it-works"
+              className="text-sm font-medium text-gray-600 hover:text-carbon-600 transition-colors"
+            >
               How it Works
             </a>
-            <a href="#testimonials" className="text-sm font-medium text-gray-600 hover:text-carbon-600 transition-colors">
+            <a
+              href="#testimonials"
+              className="text-sm font-medium text-gray-600 hover:text-carbon-600 transition-colors"
+            >
               Testimonials
             </a>
           </nav>
@@ -160,7 +190,11 @@ export default function Index() {
               </>
             ) : (
               <>
-                <Button variant="ghost" size="sm" onClick={() => setIsAuthModalOpen(true)}>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setIsAuthModalOpen(true)}
+                >
                   Sign In
                 </Button>
                 <Button size="sm" onClick={() => setIsAuthModalOpen(true)}>
@@ -191,25 +225,38 @@ export default function Index() {
                 Tracker
               </h1>
               <p className="text-xl text-gray-600 mb-8 leading-relaxed">
-                Join millions taking control of their environmental impact. Track daily activities, 
-                get AI-powered insights, and build sustainable habits that matter.
+                Join millions taking control of their environmental impact.
+                Track daily activities, get AI-powered insights, and build
+                sustainable habits that matter.
               </p>
-              
+
               <div className="flex flex-col sm:flex-row gap-4 mb-8">
                 {state.isAuthenticated ? (
-                  <Button size="lg" asChild className="bg-carbon-600 hover:bg-carbon-700">
+                  <Button
+                    size="lg"
+                    asChild
+                    className="bg-carbon-600 hover:bg-carbon-700"
+                  >
                     <Link to="/dashboard" className="flex items-center">
                       Go to Dashboard
                       <ArrowRight className="ml-2 h-4 w-4" />
                     </Link>
                   </Button>
                 ) : (
-                  <Button size="lg" className="bg-carbon-600 hover:bg-carbon-700" onClick={() => setIsAuthModalOpen(true)}>
+                  <Button
+                    size="lg"
+                    className="bg-carbon-600 hover:bg-carbon-700"
+                    onClick={() => setIsAuthModalOpen(true)}
+                  >
                     Start Tracking Free
                     <ArrowRight className="ml-2 h-4 w-4" />
                   </Button>
                 )}
-                <Button variant="outline" size="lg" onClick={() => setIsVideoPlaying(true)}>
+                <Button
+                  variant="outline"
+                  size="lg"
+                  onClick={() => setIsVideoPlaying(true)}
+                >
                   <Play className="mr-2 h-4 w-4" />
                   Watch Demo
                 </Button>
@@ -235,19 +282,25 @@ export default function Index() {
             >
               <div className="relative bg-white rounded-2xl shadow-2xl p-8 border">
                 <div className="flex items-center justify-between mb-6">
-                  <h3 className="text-lg font-semibold text-carbon-800">Your Impact This Month</h3>
-                  <Badge className="bg-carbon-100 text-carbon-800">-32% vs last month</Badge>
+                  <h3 className="text-lg font-semibold text-carbon-800">
+                    Your Impact This Month
+                  </h3>
+                  <Badge className="bg-carbon-100 text-carbon-800">
+                    -32% vs last month
+                  </Badge>
                 </div>
-                
+
                 <div className="space-y-4">
                   <div className="flex items-center justify-between">
-                    <span className="text-sm text-gray-600">Transportation</span>
+                    <span className="text-sm text-gray-600">
+                      Transportation
+                    </span>
                     <span className="text-sm font-medium">2.1 tons CO₂</span>
                   </div>
                   <div className="w-full bg-gray-200 rounded-full h-2">
                     <div className="bg-carbon-600 h-2 rounded-full w-3/4"></div>
                   </div>
-                  
+
                   <div className="flex items-center justify-between">
                     <span className="text-sm text-gray-600">Energy</span>
                     <span className="text-sm font-medium">1.8 tons CO₂</span>
@@ -255,7 +308,7 @@ export default function Index() {
                   <div className="w-full bg-gray-200 rounded-full h-2">
                     <div className="bg-eco-500 h-2 rounded-full w-2/3"></div>
                   </div>
-                  
+
                   <div className="flex items-center justify-between">
                     <span className="text-sm text-gray-600">Food</span>
                     <span className="text-sm font-medium">1.2 tons CO₂</span>
@@ -267,7 +320,8 @@ export default function Index() {
 
                 <div className="mt-6 p-4 bg-carbon-50 rounded-lg">
                   <p className="text-sm text-carbon-700">
-                    <span className="font-semibold">Great progress!</span> You're on track to reach your goal of 4.5 tons this month.
+                    <span className="font-semibold">Great progress!</span>{" "}
+                    You're on track to reach your goal of 4.5 tons this month.
                   </p>
                 </div>
               </div>
@@ -289,7 +343,9 @@ export default function Index() {
                 viewport={{ once: true }}
                 className="text-center"
               >
-                <div className="text-3xl lg:text-4xl font-bold text-carbon-800 mb-2">{stat.number}</div>
+                <div className="text-3xl lg:text-4xl font-bold text-carbon-800 mb-2">
+                  {stat.number}
+                </div>
                 <div className="text-gray-600">{stat.label}</div>
               </motion.div>
             ))}
@@ -298,7 +354,10 @@ export default function Index() {
       </section>
 
       {/* Features Section */}
-      <section id="features" className="py-20 bg-gradient-to-br from-carbon-50 to-eco-50">
+      <section
+        id="features"
+        className="py-20 bg-gradient-to-br from-carbon-50 to-eco-50"
+      >
         <div className="container px-4 mx-auto">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -311,7 +370,8 @@ export default function Index() {
               Everything You Need to Go Carbon Neutral
             </h2>
             <p className="text-xl text-gray-600 max-w-2xl mx-auto">
-              Powerful tools and insights to help you understand, reduce, and offset your environmental impact.
+              Powerful tools and insights to help you understand, reduce, and
+              offset your environmental impact.
             </p>
           </motion.div>
 
@@ -331,10 +391,14 @@ export default function Index() {
                       <div className="w-12 h-12 bg-carbon-100 rounded-lg flex items-center justify-center mb-4">
                         <Icon className="h-6 w-6 text-carbon-600" />
                       </div>
-                      <CardTitle className="text-carbon-800">{feature.title}</CardTitle>
+                      <CardTitle className="text-carbon-800">
+                        {feature.title}
+                      </CardTitle>
                     </CardHeader>
                     <CardContent>
-                      <CardDescription className="text-gray-600">{feature.description}</CardDescription>
+                      <CardDescription className="text-gray-600">
+                        {feature.description}
+                      </CardDescription>
                     </CardContent>
                   </Card>
                 </motion.div>
@@ -375,7 +439,9 @@ export default function Index() {
                 <div className="w-12 h-12 bg-carbon-600 text-white rounded-full flex items-center justify-center text-lg font-bold mx-auto mb-4">
                   {step.step}
                 </div>
-                <h3 className="text-lg font-semibold text-carbon-800 mb-2">{step.title}</h3>
+                <h3 className="text-lg font-semibold text-carbon-800 mb-2">
+                  {step.title}
+                </h3>
                 <p className="text-gray-600">{step.description}</p>
                 {index < howItWorks.length - 1 && (
                   <ChevronRight className="h-6 w-6 text-gray-400 mx-auto mt-4 hidden lg:block" />
@@ -387,7 +453,10 @@ export default function Index() {
       </section>
 
       {/* Testimonials Section */}
-      <section id="testimonials" className="py-20 bg-gradient-to-br from-eco-50 to-carbon-50">
+      <section
+        id="testimonials"
+        className="py-20 bg-gradient-to-br from-eco-50 to-carbon-50"
+      >
         <div className="container px-4 mx-auto">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -400,7 +469,8 @@ export default function Index() {
               Loved by Sustainability Champions
             </h2>
             <p className="text-xl text-gray-600 max-w-2xl mx-auto">
-              Join thousands of users who are making a real difference for our planet.
+              Join thousands of users who are making a real difference for our
+              planet.
             </p>
           </motion.div>
 
@@ -418,16 +488,28 @@ export default function Index() {
                     <div className="flex items-center space-x-4">
                       <Avatar>
                         <AvatarImage src={testimonial.avatar} />
-                        <AvatarFallback>{testimonial.name.split(' ').map(n => n[0]).join('')}</AvatarFallback>
+                        <AvatarFallback>
+                          {testimonial.name
+                            .split(" ")
+                            .map((n) => n[0])
+                            .join("")}
+                        </AvatarFallback>
                       </Avatar>
                       <div>
-                        <h4 className="font-semibold text-carbon-800">{testimonial.name}</h4>
-                        <p className="text-sm text-gray-600">{testimonial.role}</p>
+                        <h4 className="font-semibold text-carbon-800">
+                          {testimonial.name}
+                        </h4>
+                        <p className="text-sm text-gray-600">
+                          {testimonial.role}
+                        </p>
                       </div>
                     </div>
                     <div className="flex space-x-1">
                       {[...Array(testimonial.rating)].map((_, i) => (
-                        <Star key={i} className="h-4 w-4 fill-yellow-400 text-yellow-400" />
+                        <Star
+                          key={i}
+                          className="h-4 w-4 fill-yellow-400 text-yellow-400"
+                        />
                       ))}
                     </div>
                   </CardHeader>
@@ -454,7 +536,8 @@ export default function Index() {
               Ready to Make a Difference?
             </h2>
             <p className="text-xl text-carbon-100 mb-8 max-w-2xl mx-auto">
-              Start tracking your carbon footprint today and join the movement towards a sustainable future.
+              Start tracking your carbon footprint today and join the movement
+              towards a sustainable future.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               {state.isAuthenticated ? (
@@ -465,12 +548,20 @@ export default function Index() {
                   </Link>
                 </Button>
               ) : (
-                <Button size="lg" variant="secondary" onClick={() => setIsAuthModalOpen(true)}>
+                <Button
+                  size="lg"
+                  variant="secondary"
+                  onClick={() => setIsAuthModalOpen(true)}
+                >
                   Start Your Journey
                   <ArrowRight className="ml-2 h-4 w-4" />
                 </Button>
               )}
-              <Button size="lg" variant="outline" className="border-white text-white hover:bg-white hover:text-carbon-600">
+              <Button
+                size="lg"
+                variant="outline"
+                className="border-white text-white hover:bg-white hover:text-carbon-600"
+              >
                 Learn More
               </Button>
             </div>
@@ -485,51 +576,104 @@ export default function Index() {
             <div>
               <Link to="/" className="flex items-center space-x-2 mb-4">
                 <Leaf className="h-6 w-6 text-carbon-600" />
-                <span className="text-lg font-bold text-carbon-800">CarbonMeter</span>
+                <span className="text-lg font-bold text-carbon-800">
+                  CarbonMeter
+                </span>
               </Link>
               <p className="text-gray-600 text-sm">
-                Empowering individuals and communities to build a sustainable future through actionable carbon tracking.
+                Empowering individuals and communities to build a sustainable
+                future through actionable carbon tracking.
               </p>
             </div>
-            
+
             <div>
               <h4 className="font-semibold text-carbon-800 mb-4">Product</h4>
               <ul className="space-y-2 text-sm text-gray-600">
-                <li><Link to="/dashboard" className="hover:text-carbon-600">Dashboard</Link></li>
-                <li><Link to="/activity" className="hover:text-carbon-600">Activity Tracker</Link></li>
-                <li><Link to="/analytics" className="hover:text-carbon-600">Analytics</Link></li>
-                <li><Link to="/community" className="hover:text-carbon-600">Community</Link></li>
+                <li>
+                  <Link to="/dashboard" className="hover:text-carbon-600">
+                    Dashboard
+                  </Link>
+                </li>
+                <li>
+                  <Link to="/activity" className="hover:text-carbon-600">
+                    Activity Tracker
+                  </Link>
+                </li>
+                <li>
+                  <Link to="/analytics" className="hover:text-carbon-600">
+                    Analytics
+                  </Link>
+                </li>
+                <li>
+                  <Link to="/community" className="hover:text-carbon-600">
+                    Community
+                  </Link>
+                </li>
               </ul>
             </div>
-            
+
             <div>
               <h4 className="font-semibold text-carbon-800 mb-4">Company</h4>
               <ul className="space-y-2 text-sm text-gray-600">
-                <li><a href="#" className="hover:text-carbon-600">About</a></li>
-                <li><a href="#" className="hover:text-carbon-600">Blog</a></li>
-                <li><a href="#" className="hover:text-carbon-600">Careers</a></li>
-                <li><a href="#" className="hover:text-carbon-600">Contact</a></li>
+                <li>
+                  <a href="#" className="hover:text-carbon-600">
+                    About
+                  </a>
+                </li>
+                <li>
+                  <a href="#" className="hover:text-carbon-600">
+                    Blog
+                  </a>
+                </li>
+                <li>
+                  <a href="#" className="hover:text-carbon-600">
+                    Careers
+                  </a>
+                </li>
+                <li>
+                  <a href="#" className="hover:text-carbon-600">
+                    Contact
+                  </a>
+                </li>
               </ul>
             </div>
-            
+
             <div>
               <h4 className="font-semibold text-carbon-800 mb-4">Legal</h4>
               <ul className="space-y-2 text-sm text-gray-600">
-                <li><a href="#" className="hover:text-carbon-600">Privacy</a></li>
-                <li><a href="#" className="hover:text-carbon-600">Terms</a></li>
-                <li><a href="#" className="hover:text-carbon-600">Security</a></li>
+                <li>
+                  <a href="#" className="hover:text-carbon-600">
+                    Privacy
+                  </a>
+                </li>
+                <li>
+                  <a href="#" className="hover:text-carbon-600">
+                    Terms
+                  </a>
+                </li>
+                <li>
+                  <a href="#" className="hover:text-carbon-600">
+                    Security
+                  </a>
+                </li>
               </ul>
             </div>
           </div>
-          
+
           <div className="border-t mt-8 pt-8 text-center text-sm text-gray-600">
-            <p>&copy; 2024 CarbonMeter. All rights reserved. Built for a sustainable future.</p>
+            <p>
+              &copy; 2024 CarbonMeter. All rights reserved. Built for a
+              sustainable future.
+            </p>
           </div>
         </div>
       </footer>
 
       {/* Authentication Modal */}
-      <AuthModal isOpen={isAuthModalOpen} onClose={() => setIsAuthModalOpen(false)} />
+      <AuthModal
+        isOpen={isAuthModalOpen}
+        onClose={() => setIsAuthModalOpen(false)}
+      />
     </div>
   );
 }
