@@ -1,24 +1,6 @@
 import { RequestHandler } from "express";
 import { z } from "zod";
-
-// In-memory storage for demo (in production, use a proper database)
-interface User {
-  id: string;
-  name: string;
-  email: string;
-  monthlyTarget: number;
-  goals: {
-    carbonReduction: number;
-    transportReduction: number;
-    renewableEnergy: number;
-  };
-  createdAt: string;
-  lastLogin: string;
-}
-
-// Simple in-memory store (replace with database in production)
-const users: Map<string, User> = new Map();
-const sessions: Map<string, string> = new Map(); // sessionToken -> userId
+import { supabase, User } from "../lib/supabase";
 
 // Validation schemas
 const registerSchema = z.object({
@@ -35,65 +17,109 @@ const updateProfileSchema = z.object({
   name: z.string().min(2).optional(),
   monthlyTarget: z.number().min(0.1).max(50).optional(),
   goals: z.object({
-    carbonReduction: z.number().min(0).max(100).optional(),
-    transportReduction: z.number().min(0).max(100).optional(),
-    renewableEnergy: z.number().min(0).max(100).optional(),
+    carbon_reduction: z.number().min(0).max(100).optional(),
+    transport_reduction: z.number().min(0).max(100).optional(),
+    renewable_energy: z.number().min(0).max(100).optional(),
   }).optional(),
 });
 
 // Helper functions
-const generateId = () => Date.now().toString() + Math.random().toString(36).substr(2, 9);
 const generateSessionToken = () => Math.random().toString(36).substr(2, 15) + Date.now().toString(36);
 
 // Middleware to verify authentication
-export const requireAuth: RequestHandler = (req, res, next) => {
+export const requireAuth: RequestHandler = async (req, res, next) => {
   const sessionToken = req.headers.authorization?.replace('Bearer ', '');
   
   if (!sessionToken) {
     return res.status(401).json({ error: 'No session token provided' });
   }
   
-  const userId = sessions.get(sessionToken);
-  if (!userId || !users.has(userId)) {
-    return res.status(401).json({ error: 'Invalid or expired session' });
+  try {
+    // Check if session exists and is valid
+    const { data: session, error } = await supabase
+      .from('user_sessions')
+      .select('user_id, expires_at')
+      .eq('session_token', sessionToken)
+      .single();
+
+    if (error || !session) {
+      return res.status(401).json({ error: 'Invalid session token' });
+    }
+
+    // Check if session is expired
+    if (new Date(session.expires_at) < new Date()) {
+      // Delete expired session
+      await supabase
+        .from('user_sessions')
+        .delete()
+        .eq('session_token', sessionToken);
+      
+      return res.status(401).json({ error: 'Session expired' });
+    }
+
+    req.user = { id: session.user_id };
+    next();
+  } catch (error) {
+    console.error('Authentication error:', error);
+    res.status(500).json({ error: 'Internal server error' });
   }
-  
-  req.user = { id: userId };
-  next();
 };
 
 // Register endpoint
-export const handleRegister: RequestHandler = (req, res) => {
+export const handleRegister: RequestHandler = async (req, res) => {
   try {
     const { name, email, monthlyTarget } = registerSchema.parse(req.body);
     
     // Check if user already exists
-    const existingUser = Array.from(users.values()).find(user => user.email === email);
+    const { data: existingUser } = await supabase
+      .from('users')
+      .select('id')
+      .eq('email', email)
+      .single();
+
     if (existingUser) {
       return res.status(400).json({ error: 'User with this email already exists' });
     }
     
     // Create new user
-    const userId = generateId();
-    const user: User = {
-      id: userId,
-      name,
-      email,
-      monthlyTarget,
-      goals: {
-        carbonReduction: 30,
-        transportReduction: 25,
-        renewableEnergy: 80,
-      },
-      createdAt: new Date().toISOString(),
-      lastLogin: new Date().toISOString(),
-    };
-    
-    users.set(userId, user);
-    
+    const { data: user, error: userError } = await supabase
+      .from('users')
+      .insert({
+        name,
+        email,
+        monthly_target: monthlyTarget,
+        goals: {
+          carbon_reduction: 30,
+          transport_reduction: 25,
+          renewable_energy: 80,
+        },
+        last_login: new Date().toISOString(),
+      })
+      .select()
+      .single();
+
+    if (userError) {
+      console.error('User creation error:', userError);
+      return res.status(500).json({ error: 'Failed to create user' });
+    }
+
     // Create session
     const sessionToken = generateSessionToken();
-    sessions.set(sessionToken, userId);
+    const expiresAt = new Date();
+    expiresAt.setDate(expiresAt.getDate() + 30); // 30 days
+
+    const { error: sessionError } = await supabase
+      .from('user_sessions')
+      .insert({
+        user_id: user.id,
+        session_token: sessionToken,
+        expires_at: expiresAt.toISOString(),
+      });
+
+    if (sessionError) {
+      console.error('Session creation error:', sessionError);
+      return res.status(500).json({ error: 'Failed to create session' });
+    }
     
     // Return user data and session token
     res.status(201).json({
@@ -101,7 +127,7 @@ export const handleRegister: RequestHandler = (req, res) => {
         id: user.id,
         name: user.name,
         email: user.email,
-        monthlyTarget: user.monthlyTarget,
+        monthlyTarget: user.monthly_target,
         goals: user.goals,
       },
       sessionToken,
@@ -117,29 +143,58 @@ export const handleRegister: RequestHandler = (req, res) => {
 };
 
 // Login endpoint
-export const handleLogin: RequestHandler = (req, res) => {
+export const handleLogin: RequestHandler = async (req, res) => {
   try {
     const { email } = loginSchema.parse(req.body);
     
     // Find user by email
-    const user = Array.from(users.values()).find(u => u.email === email);
-    if (!user) {
+    const { data: user, error } = await supabase
+      .from('users')
+      .select('*')
+      .eq('email', email)
+      .single();
+
+    if (error || !user) {
       return res.status(404).json({ error: 'User not found' });
     }
     
     // Update last login
-    user.lastLogin = new Date().toISOString();
-    
-    // Create session
+    await supabase
+      .from('users')
+      .update({ last_login: new Date().toISOString() })
+      .eq('id', user.id);
+
+    // Clean up old sessions for this user
+    await supabase
+      .from('user_sessions')
+      .delete()
+      .eq('user_id', user.id)
+      .lt('expires_at', new Date().toISOString());
+
+    // Create new session
     const sessionToken = generateSessionToken();
-    sessions.set(sessionToken, user.id);
-    
+    const expiresAt = new Date();
+    expiresAt.setDate(expiresAt.getDate() + 30); // 30 days
+
+    const { error: sessionError } = await supabase
+      .from('user_sessions')
+      .insert({
+        user_id: user.id,
+        session_token: sessionToken,
+        expires_at: expiresAt.toISOString(),
+      });
+
+    if (sessionError) {
+      console.error('Session creation error:', sessionError);
+      return res.status(500).json({ error: 'Failed to create session' });
+    }
+
     res.json({
       user: {
         id: user.id,
         name: user.name,
         email: user.email,
-        monthlyTarget: user.monthlyTarget,
+        monthlyTarget: user.monthly_target,
         goals: user.goals,
       },
       sessionToken,
@@ -155,15 +210,20 @@ export const handleLogin: RequestHandler = (req, res) => {
 };
 
 // Get current user endpoint
-export const handleGetUser: RequestHandler = (req, res) => {
+export const handleGetUser: RequestHandler = async (req, res) => {
   try {
     const userId = req.user?.id;
     if (!userId) {
       return res.status(401).json({ error: 'Not authenticated' });
     }
     
-    const user = users.get(userId);
-    if (!user) {
+    const { data: user, error } = await supabase
+      .from('users')
+      .select('*')
+      .eq('id', userId)
+      .single();
+
+    if (error || !user) {
       return res.status(404).json({ error: 'User not found' });
     }
     
@@ -172,7 +232,7 @@ export const handleGetUser: RequestHandler = (req, res) => {
         id: user.id,
         name: user.name,
         email: user.email,
-        monthlyTarget: user.monthlyTarget,
+        monthlyTarget: user.monthly_target,
         goals: user.goals,
       },
     });
@@ -184,7 +244,7 @@ export const handleGetUser: RequestHandler = (req, res) => {
 };
 
 // Update profile endpoint
-export const handleUpdateProfile: RequestHandler = (req, res) => {
+export const handleUpdateProfile: RequestHandler = async (req, res) => {
   try {
     const userId = req.user?.id;
     if (!userId) {
@@ -192,17 +252,35 @@ export const handleUpdateProfile: RequestHandler = (req, res) => {
     }
     
     const updates = updateProfileSchema.parse(req.body);
-    const user = users.get(userId);
     
-    if (!user) {
-      return res.status(404).json({ error: 'User not found' });
-    }
-    
-    // Update user fields
-    if (updates.name) user.name = updates.name;
-    if (updates.monthlyTarget) user.monthlyTarget = updates.monthlyTarget;
+    // Build update object
+    const updateObj: any = {};
+    if (updates.name) updateObj.name = updates.name;
+    if (updates.monthlyTarget) updateObj.monthly_target = updates.monthlyTarget;
     if (updates.goals) {
-      user.goals = { ...user.goals, ...updates.goals };
+      // Merge with existing goals
+      const { data: currentUser } = await supabase
+        .from('users')
+        .select('goals')
+        .eq('id', userId)
+        .single();
+
+      updateObj.goals = {
+        ...(currentUser?.goals || {}),
+        ...updates.goals,
+      };
+    }
+
+    const { data: user, error } = await supabase
+      .from('users')
+      .update(updateObj)
+      .eq('id', userId)
+      .select()
+      .single();
+
+    if (error) {
+      console.error('Update profile error:', error);
+      return res.status(500).json({ error: 'Failed to update profile' });
     }
     
     res.json({
@@ -210,7 +288,7 @@ export const handleUpdateProfile: RequestHandler = (req, res) => {
         id: user.id,
         name: user.name,
         email: user.email,
-        monthlyTarget: user.monthlyTarget,
+        monthlyTarget: user.monthly_target,
         goals: user.goals,
       },
     });
@@ -225,12 +303,15 @@ export const handleUpdateProfile: RequestHandler = (req, res) => {
 };
 
 // Logout endpoint
-export const handleLogout: RequestHandler = (req, res) => {
+export const handleLogout: RequestHandler = async (req, res) => {
   try {
     const sessionToken = req.headers.authorization?.replace('Bearer ', '');
     
     if (sessionToken) {
-      sessions.delete(sessionToken);
+      await supabase
+        .from('user_sessions')
+        .delete()
+        .eq('session_token', sessionToken);
     }
     
     res.json({ message: 'Logged out successfully' });
@@ -240,32 +321,3 @@ export const handleLogout: RequestHandler = (req, res) => {
     res.status(500).json({ error: 'Internal server error' });
   }
 };
-
-// Demo user creation for development
-export const createDemoUser = () => {
-  const demoUserId = 'demo-user-123';
-  const demoUser: User = {
-    id: demoUserId,
-    name: 'Demo User',
-    email: 'demo@carbonmeter.com',
-    monthlyTarget: 4.5,
-    goals: {
-      carbonReduction: 30,
-      transportReduction: 25,
-      renewableEnergy: 80,
-    },
-    createdAt: new Date().toISOString(),
-    lastLogin: new Date().toISOString(),
-  };
-  
-  users.set(demoUserId, demoUser);
-  
-  // Create a long-lasting session for demo
-  const demoSessionToken = 'demo-session-token';
-  sessions.set(demoSessionToken, demoUserId);
-  
-  return { user: demoUser, sessionToken: demoSessionToken };
-};
-
-// Initialize demo user on module load
-createDemoUser();
