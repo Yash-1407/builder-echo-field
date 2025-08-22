@@ -34,10 +34,21 @@ export function createServer() {
   // Initialize database on startup (async, non-blocking)
   initializeDatabase();
 
-  // Middleware
-  app.use(cors());
-  app.use(express.json());
-  app.use(express.urlencoded({ extended: true }));
+  // Security middleware
+  app.use(securityHeaders);
+  app.use(rateLimit(100, 15 * 60 * 1000)); // 100 requests per 15 minutes
+  app.use(detectSuspiciousActivity);
+
+  // Basic middleware
+  app.use(cors({
+    origin: process.env.NODE_ENV === 'production'
+      ? ['https://your-domain.com'] // Replace with your production domain
+      : true,
+    credentials: true
+  }));
+  app.use(express.json({ limit: '10mb' }));
+  app.use(express.urlencoded({ extended: true, limit: '10mb' }));
+  app.use(sanitizeInput);
 
   // Health check
   app.get("/api/ping", (_req, res) => {
