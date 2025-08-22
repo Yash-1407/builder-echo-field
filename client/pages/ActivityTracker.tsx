@@ -88,11 +88,13 @@ export default function ActivityTracker() {
     if (!transportForm.vehicleType || !transportForm.distance) return;
 
     setIsLoading(true);
+    setSubmitError(null);
+
     try {
       const distance = parseFloat(transportForm.distance);
       const impact = calculateTransportImpact(transportForm.vehicleType, distance);
 
-      addActivity({
+      await addActivity({
         type: "transport",
         description: transportForm.description || `${distance} miles by ${transportForm.vehicleType}`,
         impact: Math.round(impact * 100) / 100,
@@ -100,7 +102,7 @@ export default function ActivityTracker() {
         date: new Date().toISOString(),
         category: transportForm.vehicleType,
         details: {
-          vehicleType: transportForm.vehicleType,
+          vehicle_type: transportForm.vehicleType,
           distance: distance
         }
       });
@@ -108,6 +110,7 @@ export default function ActivityTracker() {
       setTransportForm({ vehicleType: "", distance: "", description: "" });
     } catch (error) {
       console.error("Error adding transport activity:", error);
+      setSubmitError(error instanceof Error ? error.message : "Failed to add activity");
     } finally {
       setIsLoading(false);
     }
