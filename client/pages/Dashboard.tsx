@@ -124,16 +124,26 @@ export default function Dashboard() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5 }}
         >
-          <Card className="border-green-200 bg-green-50 dark:bg-green-950/20">
+          <Card className={`${totalFootprint < monthlyTarget ? 'border-green-200 bg-green-50 dark:bg-green-950/20' : 'border-orange-200 bg-orange-50 dark:bg-orange-950/20'}`}>
             <CardContent className="pt-6">
               <div className="flex items-center gap-3">
-                <CheckCircle2 className="h-5 w-5 text-green-600" />
+                {totalFootprint < monthlyTarget ? (
+                  <CheckCircle2 className="h-5 w-5 text-green-600" />
+                ) : (
+                  <AlertTriangle className="h-5 w-5 text-orange-600" />
+                )}
                 <div>
-                  <p className="font-medium text-green-800 dark:text-green-200">
-                    Great progress! You're 25% below your carbon target this month.
+                  <p className={`font-medium ${totalFootprint < monthlyTarget ? 'text-green-800 dark:text-green-200' : 'text-orange-800 dark:text-orange-200'}`}>
+                    {totalFootprint < monthlyTarget
+                      ? `Great progress! You're ${Math.round(((monthlyTarget - totalFootprint) / monthlyTarget) * 100)}% below your carbon target this month.`
+                      : `You're ${Math.round(((totalFootprint - monthlyTarget) / monthlyTarget) * 100)}% above your target. Let's get back on track!`
+                    }
                   </p>
-                  <p className="text-sm text-green-600 dark:text-green-400">
-                    Keep up the sustainable choices to reach your goal of 4.5 tons CO₂.
+                  <p className={`text-sm ${totalFootprint < monthlyTarget ? 'text-green-600 dark:text-green-400' : 'text-orange-600 dark:text-orange-400'}`}>
+                    {totalFootprint < monthlyTarget
+                      ? `Keep up the sustainable choices to reach your goal of ${monthlyTarget} tons CO₂.`
+                      : `Consider logging more eco-friendly activities to meet your ${monthlyTarget} tons CO₂ goal.`
+                    }
                   </p>
                 </div>
               </div>
