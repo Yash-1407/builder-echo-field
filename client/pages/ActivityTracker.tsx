@@ -27,6 +27,7 @@ import { motion } from "framer-motion";
 export default function ActivityTracker() {
   const { addActivity, getFootprintByCategory, state } = useActivity();
   const [isLoading, setIsLoading] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState("transport");
 
   // Form states for each activity type
