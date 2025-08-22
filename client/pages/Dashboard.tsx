@@ -264,19 +264,51 @@ export default function Dashboard() {
           {/* Left Column - Charts */}
           <div className="lg:col-span-2 space-y-6">
             {/* Carbon Footprint Breakdown */}
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, delay: 0.2 }}
-            >
-              <ActivityChart
-                title="Carbon Footprint Breakdown"
-                description="Your emissions by category this month"
-                data={carbonFootprintData}
-                type="pie"
-                height={350}
-              />
-            </motion.div>
+            <AnimatePresence mode="wait">
+              {carbonFootprintData.length > 0 ? (
+                <motion.div
+                  key="chart-data"
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -20 }}
+                  transition={{ duration: 0.5, delay: 0.2 }}
+                >
+                  <ActivityChart
+                    title="Carbon Footprint Breakdown"
+                    description="Your emissions by category this month"
+                    data={carbonFootprintData}
+                    type="pie"
+                    height={350}
+                  />
+                </motion.div>
+              ) : (
+                <motion.div
+                  key="chart-empty"
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -20 }}
+                  transition={{ duration: 0.5, delay: 0.2 }}
+                >
+                  <Card className="border-0 shadow-md">
+                    <CardHeader>
+                      <CardTitle>Carbon Footprint Breakdown</CardTitle>
+                      <CardDescription>Your emissions by category this month</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                      <EmptyState
+                        title="No Data Yet"
+                        description="Start logging activities to see your carbon footprint breakdown"
+                        action={{
+                          label: "Track Activity",
+                          onClick: () => window.location.href = '/activity'
+                        }}
+                        icon={Leaf}
+                      />
+                    </CardContent>
+                  </Card>
+                </motion.div>
+              )}
+            </AnimatePresence>
 
             {/* Trend Analysis */}
             <motion.div
