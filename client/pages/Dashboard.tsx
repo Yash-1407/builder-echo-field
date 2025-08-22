@@ -30,7 +30,68 @@ import { motion, AnimatePresence } from "framer-motion";
 
 export default function Dashboard() {
   const [selectedPeriod, setSelectedPeriod] = useState("month");
-  const { getTotalFootprint, getFootprintByCategory, getTrendData, state } = useActivity();
+  const {
+    getTotalFootprint,
+    getFootprintByCategory,
+    getTrendData,
+    state,
+    refreshAnalytics,
+    refreshActivities
+  } = useActivity();
+
+  // Handle period changes
+  useEffect(() => {
+    if (state.isAuthenticated) {
+      refreshAnalytics(selectedPeriod);
+    }
+  }, [selectedPeriod, state.isAuthenticated]);
+
+  // Show loading state
+  if (state.isLoading) {
+    return (
+      <div className="min-h-screen bg-background">
+        <div className="container mx-auto px-4 py-8 space-y-8">
+          <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+            <div>
+              <h1 className="text-3xl font-bold text-foreground">Dashboard</h1>
+              <p className="text-muted-foreground">Track your carbon footprint and sustainability goals</p>
+            </div>
+          </div>
+
+          <StatsSkeleton />
+
+          <div className="grid lg:grid-cols-3 gap-8">
+            <div className="lg:col-span-2 space-y-6">
+              <ChartSkeleton />
+              <ChartSkeleton />
+            </div>
+            <div className="space-y-6">
+              <ChartSkeleton />
+              <ActivitySkeleton />
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Show error state
+  if (state.error) {
+    return (
+      <div className="min-h-screen bg-background">
+        <div className="container mx-auto px-4 py-8">
+          <ErrorDisplay
+            error={state.error}
+            variant="network"
+            onRetry={() => {
+              refreshActivities();
+              refreshAnalytics(selectedPeriod);
+            }}
+          />
+        </div>
+      </div>
+    );
+  }
 
   // Get real data from context
   const totalFootprint = getTotalFootprint('month');
