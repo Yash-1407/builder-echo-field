@@ -124,7 +124,7 @@ export const ActivityProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   useEffect(() => {
     const savedActivities = localStorage.getItem('carbonmeter_activities');
     const savedUser = localStorage.getItem('carbonmeter_user');
-    
+
     if (savedActivities) {
       try {
         const activities = JSON.parse(savedActivities);
@@ -132,8 +132,63 @@ export const ActivityProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       } catch (error) {
         console.error('Error loading activities:', error);
       }
+    } else {
+      // Add sample data for first-time users
+      const sampleActivities: Activity[] = [
+        {
+          id: 'sample1',
+          type: 'transport',
+          description: '15 miles by Car',
+          impact: 6.0,
+          unit: 'kg CO₂',
+          date: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(), // 2 hours ago
+          category: 'Car',
+          details: { vehicleType: 'Car', distance: 15 }
+        },
+        {
+          id: 'sample2',
+          type: 'energy',
+          description: '25 kWh from Grid Electricity',
+          impact: 12.5,
+          unit: 'kg CO₂',
+          date: new Date(Date.now() - 4 * 60 * 60 * 1000).toISOString(), // 4 hours ago
+          category: 'Grid Electricity',
+          details: { energySource: 'Grid Electricity', energyAmount: 25 }
+        },
+        {
+          id: 'sample3',
+          type: 'food',
+          description: 'Beef Lunch',
+          impact: 6.0,
+          unit: 'kg CO₂',
+          date: new Date(Date.now() - 6 * 60 * 60 * 1000).toISOString(), // 6 hours ago
+          category: 'Beef',
+          details: { mealType: 'Lunch', foodType: 'Beef' }
+        },
+        {
+          id: 'sample4',
+          type: 'transport',
+          description: '8 miles by Bus',
+          impact: 0.8,
+          unit: 'kg CO₂',
+          date: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString(), // Yesterday
+          category: 'Bus',
+          details: { vehicleType: 'Bus', distance: 8 }
+        },
+        {
+          id: 'sample5',
+          type: 'shopping',
+          description: '2 Electronics items',
+          impact: 10.0,
+          unit: 'kg CO₂',
+          date: new Date(Date.now() - 48 * 60 * 60 * 1000).toISOString(), // 2 days ago
+          category: 'Electronics',
+          details: { itemType: 'Electronics', quantity: 2 }
+        }
+      ];
+      dispatch({ type: 'SET_ACTIVITIES', payload: sampleActivities });
     }
-    
+
     if (savedUser) {
       try {
         const user = JSON.parse(savedUser);
@@ -141,6 +196,19 @@ export const ActivityProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       } catch (error) {
         console.error('Error loading user:', error);
       }
+    } else {
+      // Add sample user for demo
+      const sampleUser: User = {
+        name: 'Demo User',
+        email: 'demo@carbonmeter.com',
+        monthlyTarget: 4.5,
+        goals: {
+          carbonReduction: 30,
+          transportReduction: 25,
+          renewableEnergy: 80
+        }
+      };
+      dispatch({ type: 'LOGIN', payload: sampleUser });
     }
   }, []);
 
