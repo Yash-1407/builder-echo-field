@@ -1,9 +1,11 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Loading, StatsSkeleton, ChartSkeleton, ActivitySkeleton } from "@/components/ui/loading";
+import { ErrorDisplay, EmptyState } from "@/components/ui/error-display";
 import StatsCard from "@/components/StatsCard";
 import ActivityChart from "@/components/ActivityChart";
 import QuickActions from "@/components/QuickActions";
@@ -21,9 +23,10 @@ import {
   Download,
   Share2,
   AlertTriangle,
-  CheckCircle2
+  CheckCircle2,
+  Plus
 } from "lucide-react";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 
 export default function Dashboard() {
   const [selectedPeriod, setSelectedPeriod] = useState("month");
