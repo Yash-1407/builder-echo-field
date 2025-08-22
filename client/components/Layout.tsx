@@ -2,17 +2,16 @@ import { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
-import { 
-  Leaf, 
-  Menu, 
-  Sun, 
-  Moon, 
-  BarChart3, 
-  Plus, 
-  TrendingUp, 
-  Users, 
-  User, 
-  Settings 
+import {
+  Leaf,
+  Menu,
+  Sun,
+  Moon,
+  BarChart3,
+  Plus,
+  TrendingUp,
+  Users,
+  User
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
