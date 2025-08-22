@@ -145,12 +145,29 @@ export default function Index() {
           </nav>
 
           <div className="flex items-center space-x-4">
-            <Button variant="ghost" size="sm">
-              Sign In
-            </Button>
-            <Button asChild size="sm">
-              <Link to="/dashboard">Get Started</Link>
-            </Button>
+            {state.isAuthenticated ? (
+              <>
+                <span className="text-sm text-gray-600 hidden md:inline">
+                  Welcome, {state.user?.name}!
+                </span>
+                <Button asChild size="sm">
+                  <Link to="/dashboard">Dashboard</Link>
+                </Button>
+                <Button variant="ghost" size="sm" onClick={logout}>
+                  <LogOut className="h-4 w-4 mr-1" />
+                  Logout
+                </Button>
+              </>
+            ) : (
+              <>
+                <Button variant="ghost" size="sm" onClick={() => setIsAuthModalOpen(true)}>
+                  Sign In
+                </Button>
+                <Button size="sm" onClick={() => setIsAuthModalOpen(true)}>
+                  Get Started
+                </Button>
+              </>
+            )}
           </div>
         </div>
       </header>
