@@ -368,7 +368,15 @@ export default function ActivityTracker() {
                             </p>
                           </div>
                         )}
+                        {submitError && (
+                          <ErrorDisplay
+                            error={submitError}
+                            variant="minimal"
+                            onRetry={() => setSubmitError(null)}
+                          />
+                        )}
                         <Button type="submit" disabled={isLoading || !transportForm.vehicleType || !transportForm.distance} className="w-full">
+                          {isLoading && <Loading size="sm" className="mr-2" />}
                           {isLoading ? "Adding..." : "Add Transport Activity"}
                         </Button>
                       </form>
