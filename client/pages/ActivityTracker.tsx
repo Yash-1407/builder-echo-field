@@ -7,15 +7,17 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
+import { Loading } from "@/components/ui/loading";
+import { ErrorDisplay } from "@/components/ui/error-display";
 import { useActivity } from "@/contexts/ActivityContext";
 import RecentActivities from "@/components/RecentActivities";
 import ActivityChart from "@/components/ActivityChart";
-import { 
-  Car, 
-  Zap, 
-  Utensils, 
-  ShoppingBag, 
-  Plus, 
+import {
+  Car,
+  Zap,
+  Utensils,
+  ShoppingBag,
+  Plus,
   Calculator,
   Lightbulb,
   Clock
