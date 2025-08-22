@@ -8,13 +8,14 @@ import StatsCard from "@/components/StatsCard";
 import ActivityChart from "@/components/ActivityChart";
 import QuickActions from "@/components/QuickActions";
 import RecentActivities from "@/components/RecentActivities";
-import { 
-  TrendingDown, 
-  Target, 
-  Award, 
-  Leaf, 
-  Car, 
-  Zap, 
+import { useActivity } from "@/contexts/ActivityContext";
+import {
+  TrendingDown,
+  Target,
+  Award,
+  Leaf,
+  Car,
+  Zap,
   Utensils,
   Calendar,
   Download,
@@ -26,23 +27,20 @@ import { motion } from "framer-motion";
 
 export default function Dashboard() {
   const [selectedPeriod, setSelectedPeriod] = useState("month");
+  const { getTotalFootprint, getFootprintByCategory, getTrendData, state } = useActivity();
 
-  // Sample data for charts and metrics
-  const carbonFootprintData = [
-    { name: "Transportation", value: 2.1, color: "#3b82f6" },
-    { name: "Energy", value: 1.8, color: "#10b981" },
-    { name: "Food", value: 1.2, color: "#f59e0b" },
-    { name: "Shopping", value: 0.9, color: "#8b5cf6" },
-  ];
+  // Get real data from context
+  const totalFootprint = getTotalFootprint('month');
+  const dailyAverage = totalFootprint / 30;
+  const carbonFootprintData = getFootprintByCategory();
+  const trendData = getTrendData();
 
-  const trendData = [
-    { name: "Jan", value: 6.8 },
-    { name: "Feb", value: 6.2 },
-    { name: "Mar", value: 5.9 },
-    { name: "Apr", value: 5.4 },
-    { name: "May", value: 5.1 },
-    { name: "Jun", value: 6.0 },
-  ];
+  // Calculate goal progress
+  const monthlyTarget = state.user?.monthlyTarget || 4.5;
+  const goalProgress = Math.min((1 - totalFootprint / monthlyTarget) * 100, 100);
+
+  // Calculate eco score based on activities and goals
+  const ecoScore = Math.max(500 + Math.round((monthlyTarget - totalFootprint) * 100), 0);
 
   const monthlyData = [
     { name: "Week 1", value: 1.4 },
