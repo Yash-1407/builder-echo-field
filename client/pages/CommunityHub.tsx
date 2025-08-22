@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
@@ -6,94 +7,187 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Progress } from "@/components/ui/progress";
+import { Separator } from "@/components/ui/separator";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Loading } from "@/components/ui/loading";
+import { ErrorDisplay, EmptyState } from "@/components/ui/error-display";
 import { useActivity } from "@/contexts/ActivityContext";
 import {
   Users,
-  Plus,
-  Heart,
-  MessageCircle,
-  Share2,
   Trophy,
-  Flame,
   Target,
   TrendingUp,
-  Calendar,
   Award,
-  Star,
-  Clock,
   Leaf,
+  Calendar,
+  ChevronRight,
+  Search,
+  Filter,
+  Share2,
+  Heart,
+  MessageCircle,
+  UserPlus,
+  Star,
+  MapPin,
+  Clock,
 } from "lucide-react";
-import { motion } from "framer-motion";
-
-interface Post {
-  id: string;
-  author: {
-    name: string;
-    avatar: string;
-    ecoScore: number;
-    level: string;
-  };
-  content: string;
-  image?: string;
-  likes: number;
-  comments: number;
-  shares: number;
-  timestamp: string;
-  tags: string[];
-  isLiked: boolean;
-}
+import { motion, AnimatePresence } from "framer-motion";
 
 interface Challenge {
   id: string;
   title: string;
   description: string;
-  difficulty: "Easy" | "Medium" | "Hard";
+  type: "individual" | "team" | "global";
+  category: "transport" | "energy" | "food" | "waste" | "lifestyle";
+  target: number;
+  unit: string;
+  duration: number; // days
   participants: number;
-  duration: string;
-  reward: string;
-  icon: string;
-  progress?: number;
+  startDate: string;
+  endDate: string;
+  progress: number;
+  reward: {
+    points: number;
+    badge?: string;
+    title?: string;
+  };
   isJoined: boolean;
+  difficulty: "easy" | "medium" | "hard";
+}
+
+interface CommunityPost {
+  id: string;
+  author: {
+    name: string;
+    avatar?: string;
+    ecoScore: number;
+    location?: string;
+  };
+  content: string;
+  achievement?: {
+    type: string;
+    description: string;
+    impact: number;
+  };
+  likes: number;
+  comments: number;
+  timestamp: string;
+  isLiked: boolean;
+  tags: string[];
 }
 
 interface LeaderboardEntry {
   rank: number;
   name: string;
-  avatar: string;
+  avatar?: string;
   score: number;
   change: number;
-  badge: string;
+  location?: string;
+  achievements: string[];
 }
 
 export default function CommunityHub() {
   const { state } = useActivity();
-  const [newPostContent, setNewPostContent] = useState("");
-  const [isPostingLoading, setIsPostingLoading] = useState(false);
+  const [activeTab, setActiveTab] = useState("challenges");
+  const [searchQuery, setSearchQuery] = useState("");
+  const [selectedCategory, setSelectedCategory] = useState<string>("all");
+  const [isLoading, setIsLoading] = useState(false);
 
-  // Sample posts data
-  const [posts, setPosts] = useState<Post[]>([
+  // Mock data - in real app, this would come from API
+  const challenges: Challenge[] = [
+    {
+      id: "1",
+      title: "Zero Car Week",
+      description:
+        "Go a full week without using a car. Use walking, cycling, or public transport instead.",
+      type: "individual",
+      category: "transport",
+      target: 7,
+      unit: "days",
+      duration: 7,
+      participants: 1247,
+      startDate: new Date().toISOString(),
+      endDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
+      progress: 42,
+      reward: {
+        points: 500,
+        badge: "🚲",
+        title: "Green Commuter",
+      },
+      isJoined: false,
+      difficulty: "medium",
+    },
+    {
+      id: "2",
+      title: "Plant-Based Month",
+      description:
+        "Commit to a plant-based diet for 30 days and track your carbon footprint reduction.",
+      type: "global",
+      category: "food",
+      target: 30,
+      unit: "days",
+      duration: 30,
+      participants: 3421,
+      startDate: new Date().toISOString(),
+      endDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
+      progress: 67,
+      reward: {
+        points: 1000,
+        badge: "🌱",
+        title: "Plant Pioneer",
+      },
+      isJoined: true,
+      difficulty: "hard",
+    },
+    {
+      id: "3",
+      title: "Energy Saver Challenge",
+      description: "Reduce your home energy consumption by 20% this month.",
+      type: "team",
+      category: "energy",
+      target: 20,
+      unit: "% reduction",
+      duration: 30,
+      participants: 856,
+      startDate: new Date().toISOString(),
+      endDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
+      progress: 15,
+      reward: {
+        points: 750,
+        badge: "⚡",
+        title: "Energy Efficient",
+      },
+      isJoined: false,
+      difficulty: "easy",
+    },
+  ];
+
+  const communityPosts: CommunityPost[] = [
     {
       id: "1",
       author: {
-        name: "Sarah Green",
+        name: "Sarah Chen",
         avatar: "/placeholder.svg",
         ecoScore: 892,
-        level: "Eco Champion",
+        location: "San Francisco, CA",
       },
       content:
-        "Just completed my first week of cycling to work instead of driving! 🚲 Saved 12.5 kg of CO₂ and feeling amazing. The morning ride through the park is actually therapeutic. Who else is making the switch to sustainable commuting?",
-      likes: 24,
-      comments: 8,
-      shares: 3,
+        "Just completed my first zero-waste week! Amazing how much plastic we use without thinking about it. Small changes, big impact! 🌍",
+      achievement: {
+        type: "Zero Waste Week",
+        description: "Completed 7 days without generating waste",
+        impact: 2.5,
+      },
+      likes: 34,
+      comments: 12,
       timestamp: "2 hours ago",
-      tags: ["cycling", "commute", "transport"],
       isLiked: false,
+      tags: ["zero-waste", "plastic-free", "lifestyle"],
     },
     {
       id: "2",
@@ -101,586 +195,564 @@ export default function CommunityHub() {
         name: "Marcus Johnson",
         avatar: "/placeholder.svg",
         ecoScore: 756,
-        level: "Green Guardian",
+        location: "Portland, OR",
       },
       content:
-        "Meal prep Sunday with a twist! 🌱 Made 5 plant-based meals for the week. The lentil curry and quinoa salad are my new favorites. Small changes, big impact - cutting my food emissions by 40% this month!",
-      likes: 31,
-      comments: 12,
-      shares: 7,
+        "Switched to cycling for my daily commute. Not only am I reducing my carbon footprint by 3.2 kg CO₂ per day, but I feel so much healthier! Who else is part of the bike-to-work movement?",
+      likes: 67,
+      comments: 23,
       timestamp: "5 hours ago",
-      tags: ["food", "plant-based", "meal-prep"],
       isLiked: true,
+      tags: ["cycling", "commute", "health"],
     },
     {
       id: "3",
       author: {
         name: "Elena Rodriguez",
         avatar: "/placeholder.svg",
-        ecoScore: 634,
-        level: "Eco Explorer",
+        ecoScore: 923,
+        location: "Austin, TX",
       },
       content:
-        "Our family just hit 3 months of zero food waste! 🎉 Composting, meal planning, and using every ingredient creatively. The kids are now sustainability superheroes at school. Teaching the next generation starts at home! 💚",
+        "My vegetable garden is thriving! Growing your own food is incredibly rewarding and sustainable. Here's what I harvested this week 🥬🍅",
       likes: 45,
-      comments: 15,
-      shares: 12,
+      comments: 18,
       timestamp: "1 day ago",
-      tags: ["zero-waste", "family", "food"],
       isLiked: false,
-    },
-  ]);
-
-  // Sample challenges data
-  const challenges: Challenge[] = [
-    {
-      id: "1",
-      title: "Meatless Monday",
-      description: "Go plant-based every Monday for a month",
-      difficulty: "Easy",
-      participants: 1247,
-      duration: "4 weeks",
-      reward: "50 EcoPoints + Plant Badge",
-      icon: "🌱",
-      progress: 75,
-      isJoined: true,
-    },
-    {
-      id: "2",
-      title: "Car-Free Week",
-      description: "Use only public transport, cycling, or walking",
-      difficulty: "Medium",
-      participants: 892,
-      duration: "1 week",
-      reward: "100 EcoPoints + Transport Hero Badge",
-      icon: "🚲",
-      isJoined: false,
-    },
-    {
-      id: "3",
-      title: "Zero Waste Challenge",
-      description: "Produce zero waste for 30 days",
-      difficulty: "Hard",
-      participants: 456,
-      duration: "30 days",
-      reward: "200 EcoPoints + Zero Waste Master Badge",
-      icon: "♻️",
-      isJoined: false,
-    },
-    {
-      id: "4",
-      title: "Energy Saver",
-      description: "Reduce home energy consumption by 25%",
-      difficulty: "Medium",
-      participants: 723,
-      duration: "1 month",
-      reward: "75 EcoPoints + Energy Efficiency Badge",
-      icon: "⚡",
-      isJoined: true,
+      tags: ["gardening", "food", "sustainable"],
     },
   ];
 
-  // Sample leaderboard data
   const leaderboard: LeaderboardEntry[] = [
     {
       rank: 1,
       name: "Alex Thompson",
       avatar: "/placeholder.svg",
-      score: 1245,
+      score: 2547,
       change: 12,
-      badge: "🏆",
+      location: "Seattle, WA",
+      achievements: ["🌱", "🚲", "⚡", "♻️"],
     },
     {
       rank: 2,
-      name: "Maria Santos",
+      name: "Maya Patel",
       avatar: "/placeholder.svg",
-      score: 1198,
-      change: 8,
-      badge: "🥈",
+      score: 2398,
+      change: -3,
+      location: "Boulder, CO",
+      achievements: ["🌱", "⚡", "♻️"],
     },
     {
       rank: 3,
-      name: "David Kim",
+      name: "Carlos Rivera",
       avatar: "/placeholder.svg",
-      score: 1156,
-      change: -3,
-      badge: "🥉",
+      score: 2156,
+      change: 8,
+      location: "Portland, OR",
+      achievements: ["🚲", "⚡", "♻️"],
     },
     {
       rank: 4,
-      name: "Sophie Chen",
-      avatar: "/placeholder.svg",
-      score: 1089,
-      change: 15,
-      badge: "🌟",
-    },
-    {
-      rank: 5,
       name: state.user?.name || "You",
       avatar: "/placeholder.svg",
-      score: 842,
-      change: 5,
-      badge: "🌱",
+      score: 1834,
+      change: 15,
+      location: "Your City",
+      achievements: ["🌱", "🚲"],
     },
   ];
 
-  const handleLike = (postId: string) => {
-    setPosts(
-      posts.map((post) =>
-        post.id === postId
-          ? {
-              ...post,
-              likes: post.isLiked ? post.likes - 1 : post.likes + 1,
-              isLiked: !post.isLiked,
-            }
-          : post,
-      ),
-    );
-  };
-
-  const handleNewPost = async () => {
-    if (!newPostContent.trim()) return;
-
-    setIsPostingLoading(true);
-    try {
-      const newPost: Post = {
-        id: Date.now().toString(),
-        author: {
-          name: state.user?.name || "You",
-          avatar: "/placeholder.svg",
-          ecoScore: 842,
-          level: "Eco Explorer",
-        },
-        content: newPostContent,
-        likes: 0,
-        comments: 0,
-        shares: 0,
-        timestamp: "Just now",
-        tags: [],
-        isLiked: false,
-      };
-
-      setPosts([newPost, ...posts]);
-      setNewPostContent("");
-    } catch (error) {
-      console.error("Error creating post:", error);
-    } finally {
-      setIsPostingLoading(false);
+  const getDifficultyColor = (difficulty: string) => {
+    switch (difficulty) {
+      case "easy":
+        return "text-green-600 bg-green-50";
+      case "medium":
+        return "text-yellow-600 bg-yellow-50";
+      case "hard":
+        return "text-red-600 bg-red-50";
+      default:
+        return "text-gray-600 bg-gray-50";
     }
   };
 
-  const joinChallenge = (challengeId: string) => {
-    // In a real app, this would make an API call
-    console.log(`Joined challenge: ${challengeId}`);
+  const getCategoryIcon = (category: string) => {
+    switch (category) {
+      case "transport":
+        return "🚲";
+      case "energy":
+        return "⚡";
+      case "food":
+        return "🥬";
+      case "waste":
+        return "♻️";
+      case "lifestyle":
+        return "🌱";
+      default:
+        return "🌍";
+    }
   };
+
+  const filteredChallenges = challenges.filter((challenge) => {
+    const matchesSearch =
+      challenge.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      challenge.description.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesCategory =
+      selectedCategory === "all" || challenge.category === selectedCategory;
+    return matchesSearch && matchesCategory;
+  });
+
+  if (state.isLoading) {
+    return (
+      <div className="min-h-screen bg-background">
+        <div className="container mx-auto px-4 py-8">
+          <Loading variant="carbon" size="lg" text="Loading community..." />
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background">
       <div className="container mx-auto px-4 py-8 space-y-8">
         {/* Header */}
         <div className="text-center">
-          <h1 className="text-3xl font-bold text-foreground">Community Hub</h1>
-          <p className="text-muted-foreground mt-2">
-            Connect with eco-warriors and share your sustainability journey
-          </p>
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6 }}
+          >
+            <h1 className="text-3xl font-bold text-foreground mb-2">
+              Community Hub
+            </h1>
+            <p className="text-muted-foreground">
+              Connect with eco-warriors worldwide and join sustainability
+              challenges
+            </p>
+          </motion.div>
         </div>
 
-        {/* Community Stats */}
+        {/* Stats Overview */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5 }}
-          className="grid grid-cols-2 lg:grid-cols-4 gap-6"
+          transition={{ duration: 0.6, delay: 0.1 }}
+          className="grid grid-cols-1 md:grid-cols-4 gap-6"
         >
           <Card className="text-center">
             <CardContent className="pt-6">
               <Users className="h-8 w-8 mx-auto text-blue-600 mb-2" />
-              <p className="text-2xl font-bold">12.5K</p>
+              <p className="text-2xl font-bold">50,247</p>
               <p className="text-sm text-muted-foreground">Active Members</p>
             </CardContent>
           </Card>
           <Card className="text-center">
             <CardContent className="pt-6">
-              <Trophy className="h-8 w-8 mx-auto text-yellow-600 mb-2" />
-              <p className="text-2xl font-bold">45</p>
+              <Target className="h-8 w-8 mx-auto text-green-600 mb-2" />
+              <p className="text-2xl font-bold">1,234</p>
               <p className="text-sm text-muted-foreground">Active Challenges</p>
             </CardContent>
           </Card>
           <Card className="text-center">
             <CardContent className="pt-6">
-              <Leaf className="h-8 w-8 mx-auto text-green-600 mb-2" />
-              <p className="text-2xl font-bold">2.3M</p>
-              <p className="text-sm text-muted-foreground">Tons CO₂ Saved</p>
+              <Leaf className="h-8 w-8 mx-auto text-eco-600 mb-2" />
+              <p className="text-2xl font-bold">2.5M</p>
+              <p className="text-sm text-muted-foreground">CO₂ Tons Saved</p>
             </CardContent>
           </Card>
           <Card className="text-center">
             <CardContent className="pt-6">
-              <Flame className="h-8 w-8 mx-auto text-orange-600 mb-2" />
-              <p className="text-2xl font-bold">
-                {
-                  state.activities.filter((a) => {
-                    const activityDate = new Date(a.date);
-                    const weekAgo = new Date();
-                    weekAgo.setDate(weekAgo.getDate() - 7);
-                    return activityDate >= weekAgo;
-                  }).length
-                }
-              </p>
-              <p className="text-sm text-muted-foreground">Your Streak</p>
+              <Trophy className="h-8 w-8 mx-auto text-yellow-600 mb-2" />
+              <p className="text-2xl font-bold">847</p>
+              <p className="text-sm text-muted-foreground">Your Eco Score</p>
             </CardContent>
           </Card>
         </motion.div>
 
-        <div className="grid lg:grid-cols-3 gap-8">
-          {/* Main Feed */}
-          <div className="lg:col-span-2 space-y-6">
-            {/* Create Post */}
+        {/* Main Content */}
+        <Tabs value={activeTab} onValueChange={setActiveTab}>
+          <TabsList className="grid w-full grid-cols-4">
+            <TabsTrigger value="challenges">Challenges</TabsTrigger>
+            <TabsTrigger value="community">Community</TabsTrigger>
+            <TabsTrigger value="leaderboard">Leaderboard</TabsTrigger>
+            <TabsTrigger value="groups">Groups</TabsTrigger>
+          </TabsList>
+
+          {/* Challenges Tab */}
+          <TabsContent value="challenges" className="space-y-6">
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, delay: 0.1 }}
+              transition={{ duration: 0.5 }}
             >
-              <Card className="border-0 shadow-md">
+              {/* Search and Filter */}
+              <Card>
                 <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Plus className="h-5 w-5" />
-                    Share Your Eco Journey
-                  </CardTitle>
+                  <CardTitle>Find Challenges</CardTitle>
+                  <CardDescription>
+                    Join sustainability challenges and compete with the
+                    community
+                  </CardDescription>
                 </CardHeader>
-                <CardContent className="space-y-4">
-                  <Textarea
-                    value={newPostContent}
-                    onChange={(e) => setNewPostContent(e.target.value)}
-                    placeholder="What sustainable action did you take today? Share your wins, tips, or ask for advice..."
-                    rows={3}
-                  />
-                  <div className="flex justify-between items-center">
-                    <div className="flex gap-2">
-                      <Badge variant="outline">#sustainability</Badge>
-                      <Badge variant="outline">#eco-tips</Badge>
+                <CardContent>
+                  <div className="flex flex-col md:flex-row gap-4">
+                    <div className="flex-1">
+                      <Label htmlFor="search">Search challenges</Label>
+                      <div className="relative">
+                        <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                        <Input
+                          id="search"
+                          placeholder="Search by title or description..."
+                          value={searchQuery}
+                          onChange={(e) => setSearchQuery(e.target.value)}
+                          className="pl-10"
+                        />
+                      </div>
                     </div>
-                    <Button
-                      onClick={handleNewPost}
-                      disabled={isPostingLoading || !newPostContent.trim()}
-                    >
-                      {isPostingLoading ? "Posting..." : "Share"}
-                    </Button>
+                    <div className="md:w-48">
+                      <Label>Category</Label>
+                      <select
+                        value={selectedCategory}
+                        onChange={(e) => setSelectedCategory(e.target.value)}
+                        className="w-full mt-1 px-3 py-2 border border-input rounded-md bg-background"
+                      >
+                        <option value="all">All Categories</option>
+                        <option value="transport">Transport</option>
+                        <option value="energy">Energy</option>
+                        <option value="food">Food</option>
+                        <option value="waste">Waste</option>
+                        <option value="lifestyle">Lifestyle</option>
+                      </select>
+                    </div>
                   </div>
                 </CardContent>
               </Card>
-            </motion.div>
 
-            {/* Posts Feed */}
-            <Tabs defaultValue="feed" className="w-full">
-              <TabsList>
-                <TabsTrigger value="feed">Community Feed</TabsTrigger>
-                <TabsTrigger value="trending">Trending</TabsTrigger>
-                <TabsTrigger value="following">Following</TabsTrigger>
-              </TabsList>
-
-              <TabsContent value="feed" className="space-y-6">
-                {posts.map((post, index) => (
-                  <motion.div
-                    key={post.id}
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.5, delay: index * 0.1 }}
-                  >
-                    <Card className="border-0 shadow-md">
-                      <CardHeader>
-                        <div className="flex items-start gap-3">
-                          <Avatar>
-                            <AvatarImage src={post.author.avatar} />
-                            <AvatarFallback>
-                              {post.author.name
-                                .split(" ")
-                                .map((n) => n[0])
-                                .join("")}
-                            </AvatarFallback>
-                          </Avatar>
-                          <div className="flex-1">
-                            <div className="flex items-center gap-2">
-                              <h4 className="font-semibold">
-                                {post.author.name}
-                              </h4>
-                              <Badge variant="secondary" className="text-xs">
-                                {post.author.level}
-                              </Badge>
-                            </div>
-                            <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                              <span>EcoScore: {post.author.ecoScore}</span>
-                              <span>•</span>
-                              <span>{post.timestamp}</span>
-                            </div>
-                          </div>
-                        </div>
-                      </CardHeader>
-                      <CardContent className="space-y-4">
-                        <p className="text-foreground leading-relaxed">
-                          {post.content}
-                        </p>
-
-                        <div className="flex flex-wrap gap-2">
-                          {post.tags.map((tag, idx) => (
+              {/* Challenges Grid */}
+              <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <AnimatePresence mode="wait">
+                  {filteredChallenges.map((challenge, index) => (
+                    <motion.div
+                      key={challenge.id}
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: -20 }}
+                      transition={{ duration: 0.3, delay: index * 0.1 }}
+                    >
+                      <Card
+                        className={`h-full ${challenge.isJoined ? "ring-2 ring-primary" : ""}`}
+                      >
+                        <CardHeader>
+                          <div className="flex items-center justify-between">
                             <Badge
-                              key={idx}
-                              variant="outline"
-                              className="text-xs"
-                            >
-                              #{tag}
-                            </Badge>
-                          ))}
-                        </div>
-
-                        <div className="flex items-center justify-between pt-4 border-t">
-                          <div className="flex items-center gap-4">
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => handleLike(post.id)}
-                              className={`gap-2 ${post.isLiked ? "text-red-500" : ""}`}
-                            >
-                              <Heart
-                                className={`h-4 w-4 ${post.isLiked ? "fill-current" : ""}`}
-                              />
-                              {post.likes}
-                            </Button>
-                            <Button variant="ghost" size="sm" className="gap-2">
-                              <MessageCircle className="h-4 w-4" />
-                              {post.comments}
-                            </Button>
-                            <Button variant="ghost" size="sm" className="gap-2">
-                              <Share2 className="h-4 w-4" />
-                              {post.shares}
-                            </Button>
-                          </div>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  </motion.div>
-                ))}
-              </TabsContent>
-
-              <TabsContent value="trending">
-                <Card className="border-0 shadow-md">
-                  <CardContent className="pt-6">
-                    <p className="text-center text-muted-foreground">
-                      Trending posts coming soon!
-                    </p>
-                  </CardContent>
-                </Card>
-              </TabsContent>
-
-              <TabsContent value="following">
-                <Card className="border-0 shadow-md">
-                  <CardContent className="pt-6">
-                    <p className="text-center text-muted-foreground">
-                      Follow other eco-warriors to see their posts here!
-                    </p>
-                  </CardContent>
-                </Card>
-              </TabsContent>
-            </Tabs>
-          </div>
-
-          {/* Sidebar */}
-          <div className="space-y-6">
-            {/* Challenges */}
-            <motion.div
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.5, delay: 0.2 }}
-            >
-              <Card className="border-0 shadow-md">
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Target className="h-5 w-5" />
-                    Active Challenges
-                  </CardTitle>
-                  <CardDescription>
-                    Join challenges to earn points and badges
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  {challenges.slice(0, 3).map((challenge, index) => (
-                    <div key={challenge.id} className="space-y-3">
-                      <div className="flex items-start gap-3">
-                        <span className="text-2xl">{challenge.icon}</span>
-                        <div className="flex-1">
-                          <div className="flex items-center gap-2">
-                            <h4 className="font-medium text-sm">
-                              {challenge.title}
-                            </h4>
-                            <Badge
-                              variant={
-                                challenge.difficulty === "Easy"
-                                  ? "default"
-                                  : challenge.difficulty === "Medium"
-                                    ? "secondary"
-                                    : "destructive"
-                              }
-                              className="text-xs"
+                              className={getDifficultyColor(
+                                challenge.difficulty,
+                              )}
                             >
                               {challenge.difficulty}
                             </Badge>
+                            <span className="text-2xl">
+                              {getCategoryIcon(challenge.category)}
+                            </span>
                           </div>
-                          <p className="text-xs text-muted-foreground mt-1">
+                          <CardTitle className="text-lg">
+                            {challenge.title}
+                          </CardTitle>
+                          <CardDescription className="line-clamp-2">
                             {challenge.description}
-                          </p>
-                          <div className="flex items-center gap-2 mt-2">
-                            <span className="text-xs text-muted-foreground">
-                              {challenge.participants} joined
+                          </CardDescription>
+                        </CardHeader>
+                        <CardContent className="space-y-4">
+                          <div className="flex items-center justify-between text-sm">
+                            <span className="text-muted-foreground">
+                              Progress
                             </span>
-                            <span className="text-xs text-muted-foreground">
-                              •
-                            </span>
-                            <span className="text-xs text-muted-foreground">
-                              {challenge.duration}
+                            <span className="font-medium">
+                              {challenge.progress}%
                             </span>
                           </div>
-                          {challenge.isJoined && challenge.progress && (
-                            <div className="mt-2">
-                              <div className="w-full bg-secondary rounded-full h-1">
-                                <div
-                                  className="h-1 rounded-full bg-green-500 transition-all duration-500"
-                                  style={{ width: `${challenge.progress}%` }}
-                                />
+                          <Progress
+                            value={challenge.progress}
+                            className="h-2"
+                          />
+
+                          <div className="flex items-center justify-between text-sm">
+                            <div className="flex items-center gap-1">
+                              <Users className="h-4 w-4" />
+                              <span>
+                                {challenge.participants.toLocaleString()}
+                              </span>
+                            </div>
+                            <div className="flex items-center gap-1">
+                              <Clock className="h-4 w-4" />
+                              <span>{challenge.duration} days</span>
+                            </div>
+                          </div>
+
+                          <div className="flex items-center justify-between">
+                            <div>
+                              <p className="text-sm text-muted-foreground">
+                                Reward
+                              </p>
+                              <div className="flex items-center gap-1">
+                                <Trophy className="h-4 w-4 text-yellow-600" />
+                                <span className="font-medium">
+                                  {challenge.reward.points} pts
+                                </span>
+                                {challenge.reward.badge && (
+                                  <span className="text-lg">
+                                    {challenge.reward.badge}
+                                  </span>
+                                )}
                               </div>
-                              <p className="text-xs text-muted-foreground mt-1">
-                                {challenge.progress}% complete
+                            </div>
+                            <Button
+                              variant={
+                                challenge.isJoined ? "outline" : "default"
+                              }
+                              size="sm"
+                            >
+                              {challenge.isJoined ? "Joined" : "Join Challenge"}
+                            </Button>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    </motion.div>
+                  ))}
+                </AnimatePresence>
+              </div>
+            </motion.div>
+          </TabsContent>
+
+          {/* Community Tab */}
+          <TabsContent value="community" className="space-y-6">
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5 }}
+              className="space-y-6"
+            >
+              {communityPosts.map((post, index) => (
+                <motion.div
+                  key={post.id}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.3, delay: index * 0.1 }}
+                >
+                  <Card>
+                    <CardContent className="pt-6">
+                      <div className="flex items-start gap-4">
+                        <Avatar>
+                          <AvatarImage src={post.author.avatar} />
+                          <AvatarFallback>
+                            {post.author.name
+                              .split(" ")
+                              .map((n) => n[0])
+                              .join("")}
+                          </AvatarFallback>
+                        </Avatar>
+                        <div className="flex-1 space-y-2">
+                          <div className="flex items-center gap-2">
+                            <h4 className="font-semibold">
+                              {post.author.name}
+                            </h4>
+                            <Badge variant="secondary" className="text-xs">
+                              {post.author.ecoScore} eco score
+                            </Badge>
+                            {post.author.location && (
+                              <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                                <MapPin className="h-3 w-3" />
+                                {post.author.location}
+                              </div>
+                            )}
+                          </div>
+
+                          <p className="text-foreground">{post.content}</p>
+
+                          {post.achievement && (
+                            <div className="p-3 rounded-lg bg-green-50 dark:bg-green-950/20 border border-green-200 dark:border-green-800">
+                              <div className="flex items-center gap-2">
+                                <Award className="h-4 w-4 text-green-600" />
+                                <span className="font-medium text-green-800 dark:text-green-200">
+                                  Achievement Unlocked: {post.achievement.type}
+                                </span>
+                              </div>
+                              <p className="text-sm text-green-700 dark:text-green-300 mt-1">
+                                {post.achievement.description} • Saved{" "}
+                                {post.achievement.impact} kg CO₂
                               </p>
                             </div>
                           )}
+
+                          <div className="flex flex-wrap gap-2">
+                            {post.tags.map((tag) => (
+                              <Badge
+                                key={tag}
+                                variant="outline"
+                                className="text-xs"
+                              >
+                                #{tag}
+                              </Badge>
+                            ))}
+                          </div>
+
+                          <div className="flex items-center justify-between pt-2">
+                            <div className="flex items-center gap-4">
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className={`gap-1 ${post.isLiked ? "text-red-600" : ""}`}
+                              >
+                                <Heart
+                                  className={`h-4 w-4 ${post.isLiked ? "fill-current" : ""}`}
+                                />
+                                {post.likes}
+                              </Button>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className="gap-1"
+                              >
+                                <MessageCircle className="h-4 w-4" />
+                                {post.comments}
+                              </Button>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className="gap-1"
+                              >
+                                <Share2 className="h-4 w-4" />
+                                Share
+                              </Button>
+                            </div>
+                            <span className="text-xs text-muted-foreground">
+                              {post.timestamp}
+                            </span>
+                          </div>
                         </div>
                       </div>
-                      {!challenge.isJoined && (
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          className="w-full"
-                          onClick={() => joinChallenge(challenge.id)}
-                        >
-                          Join Challenge
-                        </Button>
-                      )}
-                      {index < 2 && <div className="border-t" />}
-                    </div>
-                  ))}
-                  <Button variant="ghost" className="w-full" size="sm">
-                    View All Challenges
-                  </Button>
-                </CardContent>
-              </Card>
+                    </CardContent>
+                  </Card>
+                </motion.div>
+              ))}
             </motion.div>
+          </TabsContent>
 
-            {/* Leaderboard */}
+          {/* Leaderboard Tab */}
+          <TabsContent value="leaderboard" className="space-y-6">
             <motion.div
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.5, delay: 0.3 }}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5 }}
             >
-              <Card className="border-0 shadow-md">
+              <Card>
                 <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Trophy className="h-5 w-5" />
-                    Weekly Leaderboard
-                  </CardTitle>
+                  <CardTitle>Global Eco Champions</CardTitle>
                   <CardDescription>
-                    Top sustainability champions this week
+                    Top sustainability leaders in our community
                   </CardDescription>
                 </CardHeader>
-                <CardContent className="space-y-3">
-                  {leaderboard.slice(0, 5).map((entry, index) => (
-                    <div
-                      key={index}
-                      className={`flex items-center gap-3 p-2 rounded-lg ${
-                        entry.name === (state.user?.name || "You")
-                          ? "bg-accent"
-                          : ""
+                <CardContent className="space-y-4">
+                  {leaderboard.map((entry, index) => (
+                    <motion.div
+                      key={entry.rank}
+                      initial={{ opacity: 0, x: -20 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ duration: 0.3, delay: index * 0.1 }}
+                      className={`flex items-center gap-4 p-4 rounded-lg ${
+                        entry.name === state.user?.name
+                          ? "bg-primary/10 border border-primary/20"
+                          : "bg-muted/50"
                       }`}
                     >
-                      <span className="text-lg">{entry.badge}</span>
-                      <Avatar className="h-8 w-8">
-                        <AvatarImage src={entry.avatar} />
-                        <AvatarFallback>
-                          {entry.name
-                            .split(" ")
-                            .map((n) => n[0])
-                            .join("")}
-                        </AvatarFallback>
-                      </Avatar>
-                      <div className="flex-1">
-                        <p className="font-medium text-sm">{entry.name}</p>
-                        <p className="text-xs text-muted-foreground">
-                          {entry.score} points
-                        </p>
+                      <div className="flex items-center gap-3">
+                        <div
+                          className={`w-8 h-8 rounded-full flex items-center justify-center font-bold ${
+                            entry.rank <= 3
+                              ? "bg-yellow-500 text-white"
+                              : "bg-gray-200 text-gray-700"
+                          }`}
+                        >
+                          {entry.rank <= 3 ? (
+                            <Trophy className="h-4 w-4" />
+                          ) : (
+                            entry.rank
+                          )}
+                        </div>
+                        <Avatar>
+                          <AvatarImage src={entry.avatar} />
+                          <AvatarFallback>
+                            {entry.name
+                              .split(" ")
+                              .map((n) => n[0])
+                              .join("")}
+                          </AvatarFallback>
+                        </Avatar>
                       </div>
-                      <div
-                        className={`text-xs ${entry.change > 0 ? "text-green-600" : entry.change < 0 ? "text-red-600" : "text-gray-600"}`}
-                      >
-                        {entry.change > 0 ? "+" : ""}
-                        {entry.change}
-                      </div>
-                    </div>
-                  ))}
-                  <Button variant="ghost" className="w-full" size="sm">
-                    View Full Leaderboard
-                  </Button>
-                </CardContent>
-              </Card>
-            </motion.div>
 
-            {/* Upcoming Events */}
-            <motion.div
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.5, delay: 0.4 }}
-            >
-              <Card className="border-0 shadow-md">
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Calendar className="h-5 w-5" />
-                    Upcoming Events
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-3">
-                  <div className="flex items-start gap-3">
-                    <div className="text-center">
-                      <div className="text-sm font-bold text-primary">DEC</div>
-                      <div className="text-lg font-bold">15</div>
-                    </div>
-                    <div>
-                      <h4 className="font-medium text-sm">Earth Day Cleanup</h4>
-                      <p className="text-xs text-muted-foreground">
-                        Join local cleanup event
-                      </p>
-                      <Badge variant="outline" className="text-xs mt-1">
-                        Online Event
-                      </Badge>
-                    </div>
-                  </div>
-                  <div className="flex items-start gap-3">
-                    <div className="text-center">
-                      <div className="text-sm font-bold text-primary">DEC</div>
-                      <div className="text-lg font-bold">22</div>
-                    </div>
-                    <div>
-                      <h4 className="font-medium text-sm">
-                        Sustainable Living Workshop
-                      </h4>
-                      <p className="text-xs text-muted-foreground">
-                        Learn zero-waste tips
-                      </p>
-                      <Badge variant="outline" className="text-xs mt-1">
-                        Webinar
-                      </Badge>
-                    </div>
-                  </div>
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2">
+                          <h4 className="font-semibold">{entry.name}</h4>
+                          {entry.name === state.user?.name && (
+                            <Badge variant="secondary">You</Badge>
+                          )}
+                        </div>
+                        {entry.location && (
+                          <div className="flex items-center gap-1 text-sm text-muted-foreground">
+                            <MapPin className="h-3 w-3" />
+                            {entry.location}
+                          </div>
+                        )}
+                      </div>
+
+                      <div className="text-right">
+                        <p className="font-bold text-lg">
+                          {entry.score.toLocaleString()}
+                        </p>
+                        <div
+                          className={`text-sm flex items-center gap-1 ${
+                            entry.change > 0 ? "text-green-600" : "text-red-600"
+                          }`}
+                        >
+                          <TrendingUp className="h-3 w-3" />
+                          {entry.change > 0 ? "+" : ""}
+                          {entry.change}
+                        </div>
+                      </div>
+
+                      <div className="flex gap-1">
+                        {entry.achievements.map((achievement, i) => (
+                          <span key={i} className="text-lg" title="Achievement">
+                            {achievement}
+                          </span>
+                        ))}
+                      </div>
+                    </motion.div>
+                  ))}
                 </CardContent>
               </Card>
             </motion.div>
-          </div>
-        </div>
+          </TabsContent>
+
+          {/* Groups Tab */}
+          <TabsContent value="groups" className="space-y-6">
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5 }}
+            >
+              <EmptyState
+                title="Groups Coming Soon"
+                description="Connect with like-minded individuals in your area and form eco-friendly groups. This feature is currently in development."
+                action={{
+                  label: "Get Notified",
+                  onClick: () =>
+                    alert("You'll be notified when groups are available!"),
+                }}
+                icon={Users}
+              />
+            </motion.div>
+          </TabsContent>
+        </Tabs>
       </div>
     </div>
   );
