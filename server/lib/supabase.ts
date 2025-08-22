@@ -1,7 +1,10 @@
 import { createClient } from '@supabase/supabase-js';
 
-const supabaseUrl = 'https://xmuvtxtspyqwvelvuusr.supabase.co';
-const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhtdXZ0eHRzcHlxd3ZlbHZ1dXNyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTU4ODI4MjcsImV4cCI6MjA3MTQ1ODgyN30.-ZC9RB2i7kHN-d-nL7uQOG-hT7khyxMrIER8Tv9x0d0';
+const supabaseUrl = process.env.SUPABASE_URL || 'https://xmuvtxtspyqwvelvuusr.supabase.co';
+const supabaseKey = process.env.SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhtdXZ0eHRzcHlxd3ZlbHZ1dXNyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTU4ODI4MjcsImV4cCI6MjA3MTQ1ODgyN30.-ZC9RB2i7kHN-d-nL7uQOG-hT7khyxMrIER8Tv9x0d0';
+
+console.log('Supabase URL:', supabaseUrl);
+console.log('Using DATABASE_URL:', process.env.DATABASE_URL ? 'Yes' : 'No');
 
 export const supabase = createClient(supabaseUrl, supabaseKey);
 
