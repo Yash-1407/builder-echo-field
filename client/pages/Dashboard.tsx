@@ -49,30 +49,33 @@ export default function Dashboard() {
     { name: "Week 4", value: 1.8 },
   ];
 
+  const transportEmissions = carbonFootprintData.find(item => item.name === "Transportation")?.value || 0;
+  const energyEmissions = carbonFootprintData.find(item => item.name === "Energy")?.value || 0;
+
   const goals = [
     {
       title: "Monthly CO₂ Target",
-      current: 6.0,
-      target: 4.5,
+      current: totalFootprint,
+      target: monthlyTarget,
       unit: "tons",
-      progress: 75,
-      status: "on-track" as const
+      progress: Math.min((totalFootprint / monthlyTarget) * 100, 100),
+      status: totalFootprint <= monthlyTarget ? "on-track" as const : "behind" as const
     },
     {
       title: "Transportation Reduction",
-      current: 25,
+      current: Math.max(0, Math.round(((3.0 - transportEmissions) / 3.0) * 100)),
       target: 30,
       unit: "%",
-      progress: 83,
-      status: "on-track" as const
+      progress: Math.max(0, Math.round(((3.0 - transportEmissions) / 3.0) * 100)),
+      status: transportEmissions < 2.1 ? "on-track" as const : "behind" as const
     },
     {
       title: "Renewable Energy Usage",
-      current: 60,
+      current: energyEmissions < 1.5 ? 80 : 60,
       target: 80,
       unit: "%",
-      progress: 75,
-      status: "behind" as const
+      progress: energyEmissions < 1.5 ? 100 : 75,
+      status: energyEmissions < 1.5 ? "on-track" as const : "behind" as const
     }
   ];
 
