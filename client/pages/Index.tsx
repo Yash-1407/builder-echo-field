@@ -196,12 +196,19 @@ export default function Index() {
               </p>
               
               <div className="flex flex-col sm:flex-row gap-4 mb-8">
-                <Button size="lg" asChild className="bg-carbon-600 hover:bg-carbon-700">
-                  <Link to="/dashboard" className="flex items-center">
+                {state.isAuthenticated ? (
+                  <Button size="lg" asChild className="bg-carbon-600 hover:bg-carbon-700">
+                    <Link to="/dashboard" className="flex items-center">
+                      Go to Dashboard
+                      <ArrowRight className="ml-2 h-4 w-4" />
+                    </Link>
+                  </Button>
+                ) : (
+                  <Button size="lg" className="bg-carbon-600 hover:bg-carbon-700" onClick={() => setIsAuthModalOpen(true)}>
                     Start Tracking Free
                     <ArrowRight className="ml-2 h-4 w-4" />
-                  </Link>
-                </Button>
+                  </Button>
+                )}
                 <Button variant="outline" size="lg" onClick={() => setIsVideoPlaying(true)}>
                   <Play className="mr-2 h-4 w-4" />
                   Watch Demo
@@ -450,12 +457,19 @@ export default function Index() {
               Start tracking your carbon footprint today and join the movement towards a sustainable future.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Button size="lg" variant="secondary" asChild>
-                <Link to="/dashboard" className="flex items-center">
+              {state.isAuthenticated ? (
+                <Button size="lg" variant="secondary" asChild>
+                  <Link to="/dashboard" className="flex items-center">
+                    View Dashboard
+                    <ArrowRight className="ml-2 h-4 w-4" />
+                  </Link>
+                </Button>
+              ) : (
+                <Button size="lg" variant="secondary" onClick={() => setIsAuthModalOpen(true)}>
                   Start Your Journey
                   <ArrowRight className="ml-2 h-4 w-4" />
-                </Link>
-              </Button>
+                </Button>
+              )}
               <Button size="lg" variant="outline" className="border-white text-white hover:bg-white hover:text-carbon-600">
                 Learn More
               </Button>
@@ -513,6 +527,9 @@ export default function Index() {
           </div>
         </div>
       </footer>
+
+      {/* Authentication Modal */}
+      <AuthModal isOpen={isAuthModalOpen} onClose={() => setIsAuthModalOpen(false)} />
     </div>
   );
 }
