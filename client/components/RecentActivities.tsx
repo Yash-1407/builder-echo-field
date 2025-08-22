@@ -1,57 +1,22 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Car, Zap, Utensils, Calendar, MoreHorizontal } from "lucide-react";
+import { Car, Zap, Utensils, ShoppingBag, Calendar, MoreHorizontal } from "lucide-react";
 import { motion } from "framer-motion";
+import { useActivity, Activity } from "@/contexts/ActivityContext";
 
-interface Activity {
-  id: string;
-  type: "transport" | "energy" | "food" | "shopping";
-  description: string;
-  impact: number;
-  unit: string;
-  date: string;
-  category: string;
-}
+const formatRelativeTime = (dateString: string) => {
+  const date = new Date(dateString);
+  const now = new Date();
+  const diffInHours = Math.floor((now.getTime() - date.getTime()) / (1000 * 60 * 60));
 
-const activities: Activity[] = [
-  {
-    id: "1",
-    type: "transport",
-    description: "15 mile car commute",
-    impact: 8.2,
-    unit: "kg CO₂",
-    date: "2 hours ago",
-    category: "Daily Commute"
-  },
-  {
-    id: "2", 
-    type: "energy",
-    description: "Home electricity usage",
-    impact: 12.5,
-    unit: "kg CO₂",
-    date: "4 hours ago",
-    category: "Energy"
-  },
-  {
-    id: "3",
-    type: "food",
-    description: "Beef lunch at restaurant",
-    impact: 6.8,
-    unit: "kg CO₂",
-    date: "6 hours ago",
-    category: "Dining"
-  },
-  {
-    id: "4",
-    type: "transport",
-    description: "Bus ride to downtown",
-    impact: 1.2,
-    unit: "kg CO₂",
-    date: "Yesterday",
-    category: "Public Transport"
-  }
-];
+  if (diffInHours < 1) return "Just now";
+  if (diffInHours < 24) return `${diffInHours} hour${diffInHours > 1 ? 's' : ''} ago`;
+  if (diffInHours < 48) return "Yesterday";
+
+  const diffInDays = Math.floor(diffInHours / 24);
+  return `${diffInDays} day${diffInDays > 1 ? 's' : ''} ago`;
+};
 
 const getActivityIcon = (type: Activity["type"]) => {
   switch (type) {
