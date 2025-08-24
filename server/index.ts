@@ -36,7 +36,8 @@ export function createServer() {
 
   // Security middleware
   app.use(securityHeaders);
-  app.use(rateLimit(100, 15 * 60 * 1000)); // 100 requests per 15 minutes
+  // More generous rate limit for development
+  app.use(rateLimit(10000, 15 * 60 * 1000)); // 10000 requests per 15 minutes for dev
   app.use(detectSuspiciousActivity);
 
   // Basic middleware
