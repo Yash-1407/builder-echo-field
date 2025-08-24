@@ -1,5 +1,5 @@
-import { useState, useEffect } from "react";
-import { Button } from "@/components/ui/button";
+import { useEffect, useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import {
   Card,
   CardContent,
@@ -7,583 +7,565 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import StatsCard from "@/components/StatsCard";
-import ActivityChart from "@/components/ActivityChart";
-import QuickActions from "@/components/QuickActions";
-import RecentActivities from "@/components/RecentActivities";
 import { useActivity } from "@/contexts/ActivityContext";
 import { useRealtime } from "@/contexts/RealtimeContext";
 import {
-  TrendingDown,
-  Target,
-  Award,
   Leaf,
-  Car,
-  Zap,
-  Utensils,
+  TrendingDown,
+  TrendingUp,
   Calendar,
-  Download,
-  Share2,
-  AlertTriangle,
-  CheckCircle2,
+  Target,
+  Users,
+  Zap,
+  Award,
+  Activity,
+  Globe,
+  Heart,
   Sparkles,
   Flame,
+  CheckCircle,
+  Plus,
 } from "lucide-react";
-import { motion, AnimatePresence } from "framer-motion";
+import {
+  LineChart,
+  Line,
+  PieChart,
+  Pie,
+  Cell,
+  ResponsiveContainer,
+  XAxis,
+  YAxis,
+  Tooltip,
+  BarChart,
+  Bar,
+} from "recharts";
+import StatsCard from "@/components/StatsCard";
+import RecentActivities from "@/components/RecentActivities";
+import QuickActions from "@/components/QuickActions";
+import { toast } from "@/components/ui/use-toast";
 
-export default function Dashboard() {
-  const [selectedPeriod, setSelectedPeriod] = useState("month");
-  const [showCelebration, setShowCelebration] = useState(false);
-  const { getTotalFootprint, getFootprintByCategory, getTrendData, state } =
+const Dashboard = () => {
+  const { state, getTotalFootprint, getFootprintByCategory, getTrendData } =
     useActivity();
-  const { state: realtimeState } = useRealtime();
+  const { state: realtimeState, addNotification } = useRealtime();
+  const [timeRange, setTimeRange] = useState<"week" | "month" | "year">(
+    "month",
+  );
+  const [showCelebration, setShowCelebration] = useState(false);
 
-  // Get real data from context
-  const totalFootprint = getTotalFootprint("month");
-  const dailyAverage = totalFootprint / 30;
-  const carbonFootprintData = getFootprintByCategory();
+  const monthlyTarget = state.user?.monthlyTarget || 4.5;
+  const currentFootprint = getTotalFootprint(timeRange);
+  const percentageOfTarget = (currentFootprint / monthlyTarget) * 100;
+  const categoryData = getFootprintByCategory();
   const trendData = getTrendData();
 
-  // Calculate goal progress
-  const monthlyTarget = state.user?.monthlyTarget || 4.5;
-  const goalProgress = Math.min(
-    (1 - totalFootprint / monthlyTarget) * 100,
-    100,
-  );
-
-  // Calculate eco score based on activities and goals
-  const ecoScore = Math.max(
-    500 + Math.round((monthlyTarget - totalFootprint) * 100),
-    0,
-  );
-
-  // Trigger celebration when daily progress increases significantly
+  // Realtime goal achievement check
   useEffect(() => {
-    if (
-      realtimeState.dailyGoalProgress > 90 &&
-      realtimeState.dailyGoalProgress !== 0
-    ) {
+    if (realtimeState.dailyGoalProgress >= 100 && !showCelebration) {
       setShowCelebration(true);
-      setTimeout(() => setShowCelebration(false), 3000);
+      addNotification({
+        type: "achievement",
+        title: "🎉 Daily Goal Achieved!",
+        message:
+          "Congratulations! You've reached your daily sustainability goal!",
+        action: {
+          label: "View Progress",
+          href: "/analytics",
+        },
+      });
+
+      toast({
+        title: "🎉 Achievement Unlocked!",
+        description: "Daily sustainability goal completed!",
+      });
+
+      setTimeout(() => setShowCelebration(false), 5000);
     }
-  }, [realtimeState.dailyGoalProgress]);
+  }, [realtimeState.dailyGoalProgress, showCelebration, addNotification]);
 
-  const monthlyData = [
-    { name: "Week 1", value: 1.4 },
-    { name: "Week 2", value: 1.6 },
-    { name: "Week 3", value: 1.2 },
-    { name: "Week 4", value: 1.8 },
-  ];
+  // Calculate insights
+  const insights = {
+    weeklyChange:
+      trendData.length >= 2
+        ? ((trendData[trendData.length - 1].value -
+            trendData[trendData.length - 2].value) /
+            trendData[trendData.length - 2].value) *
+          100
+        : 0,
+    bestCategory: categoryData.reduce(
+      (min, cat) => (cat.value < min.value ? cat : min),
+      categoryData[0],
+    ),
+    worstCategory: categoryData.reduce(
+      (max, cat) => (cat.value > max.value ? cat : max),
+      categoryData[0],
+    ),
+    totalActivities: state.activities.length,
+    reductionFromTarget: Math.max(0, monthlyTarget - currentFootprint),
+  };
 
-  const transportEmissions =
-    carbonFootprintData.find((item) => item.name === "Transportation")?.value ||
-    0;
-  const energyEmissions =
-    carbonFootprintData.find((item) => item.name === "Energy")?.value || 0;
-
-  const goals = [
+  const quickStats = [
     {
-      title: "Monthly CO₂ Target",
-      current: totalFootprint,
-      target: monthlyTarget,
-      unit: "tons",
-      progress: Math.min((totalFootprint / monthlyTarget) * 100, 100),
-      status:
-        totalFootprint <= monthlyTarget
-          ? ("on-track" as const)
-          : ("behind" as const),
+      title: "Carbon Footprint",
+      value: `${currentFootprint.toFixed(1)} kg`,
+      change: insights.weeklyChange,
+      icon: Leaf,
+      color: "text-carbon-600",
+      bgColor: "bg-carbon-50",
     },
     {
-      title: "Transportation Reduction",
-      current: Math.max(
-        0,
-        Math.round(((3.0 - transportEmissions) / 3.0) * 100),
-      ),
-      target: 30,
-      unit: "%",
-      progress: Math.max(
-        0,
-        Math.round(((3.0 - transportEmissions) / 3.0) * 100),
-      ),
-      status:
-        transportEmissions < 2.1 ? ("on-track" as const) : ("behind" as const),
+      title: "Target Progress",
+      value: `${Math.min(100, percentageOfTarget).toFixed(0)}%`,
+      change: percentageOfTarget <= 100 ? -10 : 15,
+      icon: Target,
+      color: percentageOfTarget <= 100 ? "text-green-600" : "text-orange-600",
+      bgColor: percentageOfTarget <= 100 ? "bg-green-50" : "bg-orange-50",
     },
     {
-      title: "Renewable Energy Usage",
-      current: energyEmissions < 1.5 ? 80 : 60,
-      target: 80,
-      unit: "%",
-      progress: energyEmissions < 1.5 ? 100 : 75,
-      status:
-        energyEmissions < 1.5 ? ("on-track" as const) : ("behind" as const),
+      title: "Activities Logged",
+      value: insights.totalActivities.toString(),
+      change: 8,
+      icon: Activity,
+      color: "text-blue-600",
+      bgColor: "bg-blue-50",
     },
-  ];
-
-  const achievements = [
-    { title: "First Week Complete", icon: "🌱", date: "2 days ago" },
-    { title: "Carbon Saver", icon: "🏆", date: "1 week ago" },
-    { title: "Green Commuter", icon: "🚲", date: "2 weeks ago" },
+    {
+      title: "Reduction Achieved",
+      value: `${insights.reductionFromTarget.toFixed(1)} kg`,
+      change: 12,
+      icon: TrendingDown,
+      color: "text-green-600",
+      bgColor: "bg-green-50",
+    },
   ];
 
   return (
-    <div className="min-h-screen bg-background">
-      <div className="container mx-auto px-4 py-8 space-y-8">
-        {/* Header */}
-        <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
-          <div>
-            <h1 className="text-3xl font-bold text-foreground">Dashboard</h1>
-            <p className="text-muted-foreground">
-              Track your carbon footprint and sustainability goals
-            </p>
-          </div>
-
-          <div className="flex items-center gap-4">
-            <Select value={selectedPeriod} onValueChange={setSelectedPeriod}>
-              <SelectTrigger className="w-32">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="week">This Week</SelectItem>
-                <SelectItem value="month">This Month</SelectItem>
-                <SelectItem value="quarter">This Quarter</SelectItem>
-                <SelectItem value="year">This Year</SelectItem>
-              </SelectContent>
-            </Select>
-
-            <div className="flex gap-2">
-              <Button variant="outline" size="sm">
-                <Download className="h-4 w-4 mr-2" />
-                Export
-              </Button>
-              <Button variant="outline" size="sm">
-                <Share2 className="h-4 w-4 mr-2" />
-                Share
-              </Button>
-            </div>
-          </div>
-        </div>
-
-        {/* Live Progress Indicator */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5 }}
-        >
-          <Card className="border-blue-200 bg-blue-50 dark:bg-blue-950/20 relative overflow-hidden">
-            <CardContent className="pt-6">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <motion.div
-                    animate={{
-                      scale: [1, 1.1, 1],
-                      rotate: realtimeState.isConnected ? [0, 5, -5, 0] : 0,
-                    }}
-                    transition={{ duration: 2, repeat: Infinity }}
-                  >
-                    <Flame className="h-5 w-5 text-orange-500" />
-                  </motion.div>
-                  <div>
-                    <p className="font-medium text-blue-800 dark:text-blue-200">
-                      Daily Progress:{" "}
-                      {Math.round(realtimeState.dailyGoalProgress)}%
-                    </p>
-                    <p className="text-sm text-blue-600 dark:text-blue-400">
-                      Streak: {realtimeState.achievementStreak} days •{" "}
-                      {realtimeState.isConnected
-                        ? "Live updates active"
-                        : "Reconnecting..."}
-                    </p>
-                  </div>
-                </div>
-                <div className="flex items-center gap-2">
-                  <motion.div
-                    className={`h-2 w-2 rounded-full ${realtimeState.isConnected ? "bg-green-500" : "bg-red-500"}`}
-                    animate={
-                      realtimeState.isConnected ? { opacity: [1, 0.5, 1] } : {}
-                    }
-                    transition={{ duration: 2, repeat: Infinity }}
-                  />
-                  <Badge variant="outline" className="bg-white/50">
-                    {
-                      state.activities.filter((a) => {
-                        const today = new Date().toDateString();
-                        return new Date(a.date).toDateString() === today;
-                      }).length
-                    }{" "}
-                    activities today
-                  </Badge>
-                </div>
-              </div>
-
-              {/* Progress Bar */}
-              <div className="mt-3">
-                <div className="w-full bg-blue-200 rounded-full h-2">
-                  <motion.div
-                    className="h-2 rounded-full bg-gradient-to-r from-blue-500 to-green-500"
-                    initial={{ width: 0 }}
-                    animate={{ width: `${realtimeState.dailyGoalProgress}%` }}
-                    transition={{ duration: 1, ease: "easeOut" }}
-                  />
-                </div>
-              </div>
-            </CardContent>
-
-            {/* Celebration sparkles overlay */}
-            <AnimatePresence>
-              {showCelebration && (
-                <div className="absolute inset-0 pointer-events-none">
-                  {[...Array(12)].map((_, i) => (
-                    <motion.div
-                      key={i}
-                      className="absolute"
-                      initial={{
-                        opacity: 0,
-                        scale: 0,
-                        x: Math.random() * 100 + "%",
-                        y: Math.random() * 100 + "%",
-                      }}
-                      animate={{
-                        opacity: [0, 1, 0],
-                        scale: [0, 1, 0],
-                        rotate: 360,
-                      }}
-                      transition={{
-                        duration: 2,
-                        delay: i * 0.1,
-                        ease: "easeOut",
-                      }}
-                    >
-                      <Sparkles className="h-4 w-4 text-yellow-500" />
-                    </motion.div>
-                  ))}
-                </div>
-              )}
-            </AnimatePresence>
-          </Card>
-        </motion.div>
-
-        {/* Status Alert */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: 0.1 }}
-        >
-          <Card
-            className={`${totalFootprint < monthlyTarget ? "border-green-200 bg-green-50 dark:bg-green-950/20" : "border-orange-200 bg-orange-50 dark:bg-orange-950/20"}`}
+    <div className="space-y-8 p-6">
+      {/* Header with welcome message */}
+      <motion.div
+        initial={{ opacity: 0, y: -20 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="flex flex-col md:flex-row md:items-center md:justify-between"
+      >
+        <div>
+          <motion.h1
+            className="text-3xl font-bold tracking-tight flex items-center gap-3"
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ delay: 0.1 }}
           >
-            <CardContent className="pt-6">
-              <div className="flex items-center gap-3">
-                {totalFootprint < monthlyTarget ? (
-                  <CheckCircle2 className="h-5 w-5 text-green-600" />
-                ) : (
-                  <AlertTriangle className="h-5 w-5 text-orange-600" />
-                )}
-                <div>
-                  <p
-                    className={`font-medium ${totalFootprint < monthlyTarget ? "text-green-800 dark:text-green-200" : "text-orange-800 dark:text-orange-200"}`}
-                  >
-                    {totalFootprint < monthlyTarget
-                      ? `Great progress! You're ${Math.round(((monthlyTarget - totalFootprint) / monthlyTarget) * 100)}% below your carbon target this month.`
-                      : `You're ${Math.round(((totalFootprint - monthlyTarget) / monthlyTarget) * 100)}% above your target. Let's get back on track!`}
-                  </p>
-                  <p
-                    className={`text-sm ${totalFootprint < monthlyTarget ? "text-green-600 dark:text-green-400" : "text-orange-600 dark:text-orange-400"}`}
-                  >
-                    {totalFootprint < monthlyTarget
-                      ? `Keep up the sustainable choices to reach your goal of ${monthlyTarget} tons CO₂.`
-                      : `Consider logging more eco-friendly activities to meet your ${monthlyTarget} tons CO₂ goal.`}
-                  </p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </motion.div>
-
-        {/* Key Metrics */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: 0.1 }}
-          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6"
-        >
-          <StatsCard
-            title="Total Footprint"
-            value={`${totalFootprint.toFixed(1)} tons`}
-            change={
-              totalFootprint < monthlyTarget
-                ? "-15% vs last month"
-                : "+5% vs last month"
-            }
-            changeType={
-              totalFootprint < monthlyTarget ? "positive" : "negative"
-            }
-            icon={Leaf}
-            description="CO₂ equivalent this month"
-          />
-          <StatsCard
-            title="Daily Average"
-            value={`${dailyAverage.toFixed(2)} tons`}
-            change={
-              dailyAverage < 0.15 ? "-8% vs last week" : "+3% vs last week"
-            }
-            changeType={dailyAverage < 0.15 ? "positive" : "negative"}
-            icon={TrendingDown}
-            description="CO₂ per day"
-          />
-          <StatsCard
-            title="Goal Progress"
-            value={`${Math.round(goalProgress)}%`}
-            change={goalProgress > 50 ? "On track" : "Needs attention"}
-            changeType={goalProgress > 50 ? "positive" : "negative"}
-            icon={Target}
-            description="Monthly reduction target"
-          />
-          <StatsCard
-            title="Eco Score"
-            value={ecoScore.toString()}
-            change={ecoScore > 600 ? "+12 points" : "-5 points"}
-            changeType={ecoScore > 600 ? "positive" : "negative"}
-            icon={Award}
-            description="Sustainability rating"
-          />
-        </motion.div>
-
-        {/* Main Content */}
-        <div className="grid lg:grid-cols-3 gap-8">
-          {/* Left Column - Charts */}
-          <div className="lg:col-span-2 space-y-6">
-            {/* Carbon Footprint Breakdown */}
             <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, delay: 0.2 }}
+              whileHover={{ rotate: 360, scale: 1.1 }}
+              transition={{ duration: 0.5 }}
             >
-              <ActivityChart
-                title="Carbon Footprint Breakdown"
-                description="Your emissions by category this month"
-                data={carbonFootprintData}
-                type="pie"
-                height={350}
-              />
+              <Leaf className="h-8 w-8 text-carbon-600" />
             </motion.div>
-
-            {/* Trend Analysis */}
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, delay: 0.3 }}
-            >
-              <Tabs defaultValue="trend" className="w-full">
-                <TabsList>
-                  <TabsTrigger value="trend">6-Month Trend</TabsTrigger>
-                  <TabsTrigger value="monthly">This Month</TabsTrigger>
-                </TabsList>
-                <TabsContent value="trend">
-                  <ActivityChart
-                    title="Carbon Emissions Trend"
-                    description="Your carbon footprint over the last 6 months"
-                    data={trendData}
-                    type="line"
-                    height={300}
-                  />
-                </TabsContent>
-                <TabsContent value="monthly">
-                  <ActivityChart
-                    title="Weekly Breakdown"
-                    description="Your weekly emissions this month"
-                    data={monthlyData}
-                    type="bar"
-                    height={300}
-                  />
-                </TabsContent>
-              </Tabs>
-            </motion.div>
-          </div>
-
-          {/* Right Column - Actions & Activities */}
-          <div className="space-y-6">
-            {/* Quick Actions */}
-            <motion.div
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.5, delay: 0.2 }}
-            >
-              <QuickActions />
-            </motion.div>
-
-            {/* Goals Progress */}
-            <motion.div
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.5, delay: 0.3 }}
-            >
-              <Card className="border-0 shadow-md">
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Target className="h-5 w-5" />
-                    Sustainability Goals
-                  </CardTitle>
-                  <CardDescription>
-                    Track your progress towards carbon reduction targets
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  {goals.map((goal, index) => (
-                    <div key={index} className="space-y-2">
-                      <div className="flex items-center justify-between">
-                        <span className="text-sm font-medium">
-                          {goal.title}
-                        </span>
-                        <Badge
-                          variant={
-                            goal.status === "on-track"
-                              ? "default"
-                              : "destructive"
-                          }
-                        >
-                          {goal.current}/{goal.target} {goal.unit}
-                        </Badge>
-                      </div>
-                      <div className="w-full bg-secondary rounded-full h-2">
-                        <div
-                          className={`h-2 rounded-full transition-all duration-500 ${
-                            goal.status === "on-track"
-                              ? "bg-green-500"
-                              : "bg-orange-500"
-                          }`}
-                          style={{ width: `${goal.progress}%` }}
-                        />
-                      </div>
-                    </div>
-                  ))}
-                </CardContent>
-              </Card>
-            </motion.div>
-
-            {/* Recent Achievements */}
-            <motion.div
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.5, delay: 0.4 }}
-            >
-              <Card className="border-0 shadow-md">
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Award className="h-5 w-5" />
-                    Recent Achievements
-                  </CardTitle>
-                  <CardDescription>
-                    Badges and milestones you've unlocked
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-3">
-                    {achievements.map((achievement, index) => (
-                      <div
-                        key={index}
-                        className="flex items-center gap-3 p-2 rounded-lg bg-accent/50"
-                      >
-                        <span className="text-2xl">{achievement.icon}</span>
-                        <div className="flex-1">
-                          <p className="font-medium text-sm">
-                            {achievement.title}
-                          </p>
-                          <p className="text-xs text-muted-foreground">
-                            {achievement.date}
-                          </p>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                  <Button variant="outline" className="w-full mt-4" size="sm">
-                    View All Achievements
-                  </Button>
-                </CardContent>
-              </Card>
-            </motion.div>
-          </div>
+            Welcome back, {state.user?.name || "User"}! 🌱
+          </motion.h1>
+          <motion.p
+            className="text-muted-foreground mt-1"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.2 }}
+          >
+            Track your environmental impact and build sustainable habits
+          </motion.p>
         </div>
 
-        {/* Recent Activities */}
+        {/* Connection Status */}
         <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: 0.4 }}
+          initial={{ opacity: 0, scale: 0.8 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ delay: 0.3 }}
+          className="flex items-center gap-4 mt-4 md:mt-0"
         >
-          <RecentActivities />
+          <div className="flex items-center gap-2">
+            <div
+              className={`w-2 h-2 rounded-full ${realtimeState.isConnected ? "bg-green-500" : "bg-red-500"} animate-pulse`}
+            />
+            <span className="text-sm text-muted-foreground">
+              {realtimeState.isConnected ? "Live" : "Offline"}
+            </span>
+          </div>
+          <Badge variant="secondary" className="animate-pulse">
+            {realtimeState.onlineUsers} online
+          </Badge>
         </motion.div>
+      </motion.div>
 
-        {/* AI Recommendations */}
+      {/* Achievement Celebration */}
+      <AnimatePresence>
+        {showCelebration && (
+          <motion.div
+            initial={{ opacity: 0, scale: 0.8, y: 50 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.8, y: -50 }}
+            className="bg-gradient-to-r from-green-500 to-carbon-600 text-white p-6 rounded-lg shadow-lg"
+          >
+            <div className="flex items-center gap-4">
+              <motion.div
+                animate={{ rotate: [0, 10, -10, 0] }}
+                transition={{ duration: 0.5, repeat: Infinity }}
+              >
+                <Award className="h-8 w-8" />
+              </motion.div>
+              <div>
+                <h3 className="text-xl font-bold">🎉 Daily Goal Achieved!</h3>
+                <p className="opacity-90">
+                  You're making a real difference for our planet!
+                </p>
+              </div>
+              <motion.div
+                animate={{ scale: [1, 1.2, 1] }}
+                transition={{ duration: 1, repeat: Infinity }}
+              >
+                <Sparkles className="h-6 w-6" />
+              </motion.div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Quick Stats Grid */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.4 }}
+        className="grid gap-4 md:grid-cols-2 lg:grid-cols-4"
+      >
+        {quickStats.map((stat, index) => (
+          <motion.div
+            key={stat.title}
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.5 + index * 0.1 }}
+            whileHover={{ scale: 1.05 }}
+            className="transition-transform"
+          >
+            <StatsCard
+              title={stat.title}
+              value={stat.value}
+              change={stat.change}
+              icon={stat.icon}
+              color={stat.color}
+              bgColor={stat.bgColor}
+            />
+          </motion.div>
+        ))}
+      </motion.div>
+
+      {/* Main Content Grid */}
+      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+        {/* Target Progress */}
         <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: 0.5 }}
+          initial={{ opacity: 0, x: -20 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ delay: 0.6 }}
+          className="lg:col-span-2"
         >
-          <Card className="border-0 shadow-md">
+          <Card className="h-full">
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
-                <AlertTriangle className="h-5 w-5 text-yellow-600" />
-                AI Recommendations
+                <Target className="h-5 w-5 text-carbon-600" />
+                Monthly Target Progress
               </CardTitle>
               <CardDescription>
-                Personalized tips to reduce your carbon footprint
+                Your carbon footprint vs. monthly target of {monthlyTarget} kg
+                CO₂
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="space-y-2">
+                <div className="flex justify-between text-sm">
+                  <span>Current: {currentFootprint.toFixed(1)} kg CO₂</span>
+                  <span
+                    className={
+                      percentageOfTarget <= 100
+                        ? "text-green-600"
+                        : "text-orange-600"
+                    }
+                  >
+                    {percentageOfTarget.toFixed(0)}% of target
+                  </span>
+                </div>
+                <Progress
+                  value={Math.min(100, percentageOfTarget)}
+                  className="h-3"
+                />
+              </div>
+
+              {percentageOfTarget <= 100 ? (
+                <div className="flex items-center gap-2 text-green-600 bg-green-50 p-3 rounded-lg">
+                  <CheckCircle className="h-5 w-5" />
+                  <span className="text-sm font-medium">
+                    Great job! You're {insights.reductionFromTarget.toFixed(1)}{" "}
+                    kg below your target.
+                  </span>
+                </div>
+              ) : (
+                <div className="flex items-center gap-2 text-orange-600 bg-orange-50 p-3 rounded-lg">
+                  <TrendingUp className="h-5 w-5" />
+                  <span className="text-sm font-medium">
+                    You're {(currentFootprint - monthlyTarget).toFixed(1)} kg
+                    over your target.
+                  </span>
+                </div>
+              )}
+
+              {/* Daily Progress */}
+              <div className="pt-4 border-t">
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-sm font-medium">
+                    Daily Goal Progress
+                  </span>
+                  <div className="flex items-center gap-1">
+                    <Flame className="h-4 w-4 text-orange-500" />
+                    <span className="text-sm">
+                      {realtimeState.achievementStreak} day streak
+                    </span>
+                  </div>
+                </div>
+                <Progress
+                  value={realtimeState.dailyGoalProgress}
+                  className="h-2"
+                />
+                <span className="text-xs text-muted-foreground mt-1 block">
+                  {realtimeState.dailyGoalProgress.toFixed(0)}% completed today
+                </span>
+              </div>
+            </CardContent>
+          </Card>
+        </motion.div>
+
+        {/* Quick Actions */}
+        <motion.div
+          initial={{ opacity: 0, x: 20 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ delay: 0.7 }}
+        >
+          <Card className="h-full">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Plus className="h-5 w-5 text-carbon-600" />
+                Quick Actions
+              </CardTitle>
+              <CardDescription>
+                Log activities and track your impact
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="grid md:grid-cols-2 gap-4">
-                <div className="p-4 rounded-lg border bg-card">
-                  <div className="flex items-center gap-2 mb-2">
-                    <Car className="h-4 w-4 text-blue-600" />
-                    <span className="font-medium text-sm">Transportation</span>
+              <QuickActions />
+            </CardContent>
+          </Card>
+        </motion.div>
+
+        {/* Carbon Footprint Breakdown */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.8 }}
+        >
+          <Card className="h-full">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Globe className="h-5 w-5 text-carbon-600" />
+                Impact Breakdown
+              </CardTitle>
+              <CardDescription>Your emissions by category</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="h-48">
+                <ResponsiveContainer width="100%" height="100%">
+                  <PieChart>
+                    <Pie
+                      data={categoryData}
+                      cx="50%"
+                      cy="50%"
+                      innerRadius={40}
+                      outerRadius={70}
+                      paddingAngle={5}
+                      dataKey="value"
+                    >
+                      {categoryData.map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={entry.color} />
+                      ))}
+                    </Pie>
+                    <Tooltip
+                      formatter={(value) => [`${value} kg CO₂`, "Impact"]}
+                    />
+                  </PieChart>
+                </ResponsiveContainer>
+              </div>
+              <div className="grid grid-cols-2 gap-2 mt-4">
+                {categoryData.map((category) => (
+                  <div key={category.name} className="flex items-center gap-2">
+                    <div
+                      className="w-3 h-3 rounded-full"
+                      style={{ backgroundColor: category.color }}
+                    />
+                    <span className="text-xs">{category.name}</span>
                   </div>
-                  <p className="text-sm text-muted-foreground">
-                    Try carpooling 2 days a week to reduce your transport
-                    emissions by 40%.
-                  </p>
-                </div>
-                <div className="p-4 rounded-lg border bg-card">
-                  <div className="flex items-center gap-2 mb-2">
-                    <Zap className="h-4 w-4 text-yellow-600" />
-                    <span className="font-medium text-sm">Energy</span>
-                  </div>
-                  <p className="text-sm text-muted-foreground">
-                    Switch to LED bulbs and save 0.2 tons CO₂ annually.
-                  </p>
-                </div>
-                <div className="p-4 rounded-lg border bg-card">
-                  <div className="flex items-center gap-2 mb-2">
-                    <Utensils className="h-4 w-4 text-green-600" />
-                    <span className="font-medium text-sm">Diet</span>
-                  </div>
-                  <p className="text-sm text-muted-foreground">
-                    Try "Meatless Monday" to reduce food-related emissions by
-                    15%.
-                  </p>
-                </div>
-                <div className="p-4 rounded-lg border bg-card">
-                  <div className="flex items-center gap-2 mb-2">
-                    <Leaf className="h-4 w-4 text-green-600" />
-                    <span className="font-medium text-sm">Lifestyle</span>
-                  </div>
-                  <p className="text-sm text-muted-foreground">
-                    Plant a tree to offset 0.04 tons CO₂ per year and earn
-                    eco-points!
-                  </p>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        </motion.div>
+
+        {/* Trend Chart */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.9 }}
+          className="lg:col-span-2"
+        >
+          <Card className="h-full">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <TrendingDown className="h-5 w-5 text-carbon-600" />
+                Footprint Trend
+              </CardTitle>
+              <CardDescription>
+                Your carbon emissions over the last 6 months
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="h-48">
+                <ResponsiveContainer width="100%" height="100%">
+                  <LineChart data={trendData}>
+                    <XAxis dataKey="name" />
+                    <YAxis />
+                    <Tooltip
+                      formatter={(value) => [`${value} kg CO₂`, "Emissions"]}
+                    />
+                    <Line
+                      type="monotone"
+                      dataKey="value"
+                      stroke="#16a34a"
+                      strokeWidth={3}
+                      dot={{ fill: "#16a34a", strokeWidth: 2, r: 4 }}
+                    />
+                  </LineChart>
+                </ResponsiveContainer>
+              </div>
+              <div className="flex items-center gap-4 mt-4 text-sm">
+                <div className="flex items-center gap-1 text-green-600">
+                  <TrendingDown className="h-4 w-4" />
+                  <span>
+                    {insights.weeklyChange < 0 ? "↓" : "↑"}{" "}
+                    {Math.abs(insights.weeklyChange).toFixed(1)}% from last
+                    month
+                  </span>
                 </div>
               </div>
             </CardContent>
           </Card>
         </motion.div>
       </div>
+
+      {/* Recent Activities */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 1.0 }}
+      >
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Activity className="h-5 w-5 text-carbon-600" />
+              Recent Activities
+            </CardTitle>
+            <CardDescription>
+              Your latest environmental impact entries
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <RecentActivities limit={5} />
+          </CardContent>
+        </Card>
+      </motion.div>
+
+      {/* Insights and Tips */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 1.1 }}
+        className="grid gap-4 md:grid-cols-2"
+      >
+        <Card className="border-green-200 bg-green-50">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-green-700">
+              <Heart className="h-5 w-5" />
+              Eco-Friendly Insight
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-green-700">
+              {insights.bestCategory
+                ? `Great job! Your ${insights.bestCategory.name.toLowerCase()} activities have the lowest impact (${insights.bestCategory.value} kg CO₂).`
+                : "Keep logging activities to see personalized insights!"}
+            </p>
+          </CardContent>
+        </Card>
+
+        <Card className="border-orange-200 bg-orange-50">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-orange-700">
+              <Zap className="h-5 w-5" />
+              Improvement Opportunity
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-orange-700">
+              {insights.worstCategory
+                ? `Consider reducing ${insights.worstCategory.name.toLowerCase()} activities - they account for ${insights.worstCategory.value} kg CO₂.`
+                : "Your impact data will help identify improvement areas."}
+            </p>
+          </CardContent>
+        </Card>
+      </motion.div>
+
+      {/* Community Stats */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 1.2 }}
+      >
+        <Card className="bg-gradient-to-r from-carbon-600 to-green-600 text-white">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Users className="h-5 w-5" />
+              Community Impact
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              <div className="text-center">
+                <div className="text-2xl font-bold">
+                  {realtimeState.onlineUsers + 1247}
+                </div>
+                <div className="text-sm opacity-90">Active Users</div>
+              </div>
+              <div className="text-center">
+                <div className="text-2xl font-bold">15.2k</div>
+                <div className="text-sm opacity-90">kg CO₂ Saved Today</div>
+              </div>
+              <div className="text-center">
+                <div className="text-2xl font-bold">89</div>
+                <div className="text-sm opacity-90">Active Challenges</div>
+              </div>
+              <div className="text-center">
+                <div className="text-2xl font-bold">4.8k</div>
+                <div className="text-sm opacity-90">Trees Planted</div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </motion.div>
     </div>
   );
-}
+};
+
+export default Dashboard;

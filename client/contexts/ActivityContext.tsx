@@ -1,5 +1,12 @@
 import React, { createContext, useContext, useReducer, useEffect } from "react";
 import { toast } from "@/components/ui/use-toast";
+import {
+  supabase,
+  apiCall,
+  getSessionToken,
+  setSessionToken,
+  removeSessionToken,
+} from "@/lib/supabase";
 
 export interface Activity {
   id: string;
@@ -22,6 +29,7 @@ export interface Activity {
 }
 
 export interface User {
+  id?: string;
   name: string;
   email: string;
   monthlyTarget: number;
@@ -36,6 +44,8 @@ interface ActivityState {
   activities: Activity[];
   user: User | null;
   isAuthenticated: boolean;
+  isLoading: boolean;
+  syncStatus: "idle" | "syncing" | "synced" | "error";
 }
 
 type ActivityAction =
@@ -48,12 +58,16 @@ type ActivityAction =
   | { type: "SET_ACTIVITIES"; payload: Activity[] }
   | { type: "SET_USER"; payload: User }
   | { type: "LOGOUT" }
-  | { type: "LOGIN"; payload: User };
+  | { type: "LOGIN"; payload: User }
+  | { type: "SET_LOADING"; payload: boolean }
+  | { type: "SET_SYNC_STATUS"; payload: ActivityState["syncStatus"] };
 
 const initialState: ActivityState = {
   activities: [],
   user: null,
   isAuthenticated: false,
+  isLoading: false,
+  syncStatus: "idle",
 };
 
 const activityReducer = (
@@ -65,6 +79,7 @@ const activityReducer = (
       return {
         ...state,
         activities: [action.payload, ...state.activities],
+        syncStatus: "synced",
       };
     case "UPDATE_ACTIVITY":
       return {
@@ -86,6 +101,7 @@ const activityReducer = (
       return {
         ...state,
         activities: action.payload,
+        syncStatus: "synced",
       };
     case "SET_USER":
     case "LOGIN":
@@ -93,12 +109,25 @@ const activityReducer = (
         ...state,
         user: action.payload,
         isAuthenticated: true,
+        isLoading: false,
       };
     case "LOGOUT":
       return {
         ...state,
         user: null,
         isAuthenticated: false,
+        activities: [],
+        isLoading: false,
+      };
+    case "SET_LOADING":
+      return {
+        ...state,
+        isLoading: action.payload,
+      };
+    case "SET_SYNC_STATUS":
+      return {
+        ...state,
+        syncStatus: action.payload,
       };
     default:
       return state;
@@ -108,9 +137,9 @@ const activityReducer = (
 const ActivityContext = createContext<{
   state: ActivityState;
   dispatch: React.Dispatch<ActivityAction>;
-  addActivity: (activity: Omit<Activity, "id">) => void;
-  updateActivity: (id: string, updates: Partial<Activity>) => void;
-  deleteActivity: (id: string) => void;
+  addActivity: (activity: Omit<Activity, "id">) => Promise<void>;
+  updateActivity: (id: string, updates: Partial<Activity>) => Promise<void>;
+  deleteActivity: (id: string) => Promise<void>;
   getTotalFootprint: (period?: "week" | "month" | "year") => number;
   getFootprintByCategory: () => {
     name: string;
@@ -118,8 +147,17 @@ const ActivityContext = createContext<{
     color: string;
   }[];
   getTrendData: () => { name: string; value: number }[];
-  login: (user: User) => void;
-  logout: () => void;
+  login: (credentials: { email: string; password?: string }) => Promise<void>;
+  register: (data: {
+    name: string;
+    email: string;
+    password: string;
+    monthlyTarget?: number;
+  }) => Promise<void>;
+  loginWithGoogle: () => Promise<void>;
+  logout: () => Promise<void>;
+  syncActivities: () => Promise<void>;
+  updateProfile: (updates: Partial<User>) => Promise<void>;
 } | null>(null);
 
 export const useActivity = () => {
@@ -135,136 +173,304 @@ export const ActivityProvider: React.FC<{ children: React.ReactNode }> = ({
 }) => {
   const [state, dispatch] = useReducer(activityReducer, initialState);
 
-  // Load data from localStorage on mount
+  // Check for existing session on mount
   useEffect(() => {
-    const savedActivities = localStorage.getItem("carbonmeter_activities");
-    const savedUser = localStorage.getItem("carbonmeter_user");
-
-    if (savedActivities) {
-      try {
-        const activities = JSON.parse(savedActivities);
-        dispatch({ type: "SET_ACTIVITIES", payload: activities });
-      } catch (error) {
-        console.error("Error loading activities:", error);
+    const initializeAuth = async () => {
+      const token = getSessionToken();
+      if (token) {
+        try {
+          dispatch({ type: "SET_LOADING", payload: true });
+          const response = await apiCall("/auth/me");
+          dispatch({ type: "LOGIN", payload: response.user });
+          await syncActivities();
+        } catch (error) {
+          console.error("Session validation failed:", error);
+          removeSessionToken();
+          loadDemoData();
+        }
+      } else {
+        loadDemoData();
       }
-    } else {
-      // Add sample data for first-time users
-      const sampleActivities: Activity[] = [
-        {
-          id: "sample1",
-          type: "transport",
-          description: "15 miles by Car",
-          impact: 6.0,
-          unit: "kg CO₂",
-          date: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(), // 2 hours ago
-          category: "Car",
-          details: { vehicleType: "Car", distance: 15 },
-        },
-        {
-          id: "sample2",
-          type: "energy",
-          description: "25 kWh from Grid Electricity",
-          impact: 12.5,
-          unit: "kg CO₂",
-          date: new Date(Date.now() - 4 * 60 * 60 * 1000).toISOString(), // 4 hours ago
-          category: "Grid Electricity",
-          details: { energySource: "Grid Electricity", energyAmount: 25 },
-        },
-        {
-          id: "sample3",
-          type: "food",
-          description: "Beef Lunch",
-          impact: 6.0,
-          unit: "kg CO₂",
-          date: new Date(Date.now() - 6 * 60 * 60 * 1000).toISOString(), // 6 hours ago
-          category: "Beef",
-          details: { mealType: "Lunch", foodType: "Beef" },
-        },
-        {
-          id: "sample4",
-          type: "transport",
-          description: "8 miles by Bus",
-          impact: 0.8,
-          unit: "kg CO₂",
-          date: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString(), // Yesterday
-          category: "Bus",
-          details: { vehicleType: "Bus", distance: 8 },
-        },
-        {
-          id: "sample5",
-          type: "shopping",
-          description: "2 Electronics items",
-          impact: 10.0,
-          unit: "kg CO₂",
-          date: new Date(Date.now() - 48 * 60 * 60 * 1000).toISOString(), // 2 days ago
-          category: "Electronics",
-          details: { itemType: "Electronics", quantity: 2 },
-        },
-      ];
-      dispatch({ type: "SET_ACTIVITIES", payload: sampleActivities });
-    }
+    };
 
-    if (savedUser) {
-      try {
-        const user = JSON.parse(savedUser);
-        dispatch({ type: "LOGIN", payload: user });
-      } catch (error) {
-        console.error("Error loading user:", error);
-      }
-    } else {
-      // Add sample user for demo
-      const sampleUser: User = {
-        name: "Demo User",
-        email: "demo@carbonmeter.com",
-        monthlyTarget: 4.5,
-        goals: {
-          carbonReduction: 30,
-          transportReduction: 25,
-          renewableEnergy: 80,
-        },
-      };
-      dispatch({ type: "LOGIN", payload: sampleUser });
-    }
+    initializeAuth();
   }, []);
 
-  // Save activities to localStorage whenever they change
-  useEffect(() => {
-    localStorage.setItem(
-      "carbonmeter_activities",
-      JSON.stringify(state.activities),
-    );
-  }, [state.activities]);
+  const loadDemoData = () => {
+    // Add sample data for demo/first-time users
+    const sampleActivities: Activity[] = [
+      {
+        id: "sample1",
+        type: "transport",
+        description: "15 miles by Car",
+        impact: 6.0,
+        unit: "kg CO₂",
+        date: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(),
+        category: "Car",
+        details: { vehicleType: "Car", distance: 15 },
+      },
+      {
+        id: "sample2",
+        type: "energy",
+        description: "25 kWh from Grid Electricity",
+        impact: 12.5,
+        unit: "kg CO₂",
+        date: new Date(Date.now() - 4 * 60 * 60 * 1000).toISOString(),
+        category: "Grid Electricity",
+        details: { energySource: "Grid Electricity", energyAmount: 25 },
+      },
+      {
+        id: "sample3",
+        type: "food",
+        description: "Beef Lunch",
+        impact: 6.0,
+        unit: "kg CO₂",
+        date: new Date(Date.now() - 6 * 60 * 60 * 1000).toISOString(),
+        category: "Beef",
+        details: { mealType: "Lunch", foodType: "Beef" },
+      },
+    ];
 
-  // Save user to localStorage whenever user changes
-  useEffect(() => {
-    if (state.user) {
-      localStorage.setItem("carbonmeter_user", JSON.stringify(state.user));
-    } else {
-      localStorage.removeItem("carbonmeter_user");
-    }
-  }, [state.user]);
-
-  const addActivity = (activity: Omit<Activity, "id">) => {
-    const newActivity: Activity = {
-      ...activity,
-      id: Date.now().toString() + Math.random().toString(36).substr(2, 9),
+    const sampleUser: User = {
+      name: "Demo User",
+      email: "demo@carbonmeter.com",
+      monthlyTarget: 4.5,
+      goals: {
+        carbonReduction: 30,
+        transportReduction: 25,
+        renewableEnergy: 80,
+      },
     };
+
+    dispatch({ type: "SET_ACTIVITIES", payload: sampleActivities });
+    dispatch({ type: "LOGIN", payload: sampleUser });
+  };
+
+  const addActivity = async (activity: Omit<Activity, "id">) => {
+    const tempId =
+      Date.now().toString() + Math.random().toString(36).substr(2, 9);
+    const newActivity: Activity = { ...activity, id: tempId };
+
+    // Optimistic update
     dispatch({ type: "ADD_ACTIVITY", payload: newActivity });
+    dispatch({ type: "SET_SYNC_STATUS", payload: "syncing" });
 
-    // Show success toast
-    toast({
-      title: "Activity Logged! 🌱",
-      description: `${activity.description} - ${activity.impact} ${activity.unit}`,
-      duration: 3000,
-    });
+    try {
+      if (state.isAuthenticated && getSessionToken()) {
+        // Save to backend
+        const response = await apiCall("/activities", {
+          method: "POST",
+          body: JSON.stringify(activity),
+        });
+
+        // Update with server ID
+        dispatch({
+          type: "UPDATE_ACTIVITY",
+          payload: { id: tempId, updates: { id: response.activity.id } },
+        });
+      }
+
+      // Show success toast
+      toast({
+        title: "Activity Logged! 🌱",
+        description: `${activity.description} - ${activity.impact} ${activity.unit}`,
+        duration: 3000,
+      });
+
+      dispatch({ type: "SET_SYNC_STATUS", payload: "synced" });
+    } catch (error) {
+      console.error("Failed to save activity:", error);
+      dispatch({ type: "SET_SYNC_STATUS", payload: "error" });
+      toast({
+        title: "Sync Error",
+        description: "Activity saved locally, will sync when online.",
+        variant: "destructive",
+      });
+    }
   };
 
-  const updateActivity = (id: string, updates: Partial<Activity>) => {
+  const updateActivity = async (id: string, updates: Partial<Activity>) => {
     dispatch({ type: "UPDATE_ACTIVITY", payload: { id, updates } });
+
+    try {
+      if (state.isAuthenticated && getSessionToken()) {
+        await apiCall(`/activities/${id}`, {
+          method: "PUT",
+          body: JSON.stringify(updates),
+        });
+      }
+    } catch (error) {
+      console.error("Failed to update activity:", error);
+    }
   };
 
-  const deleteActivity = (id: string) => {
+  const deleteActivity = async (id: string) => {
     dispatch({ type: "DELETE_ACTIVITY", payload: id });
+
+    try {
+      if (state.isAuthenticated && getSessionToken()) {
+        await apiCall(`/activities/${id}`, {
+          method: "DELETE",
+        });
+      }
+    } catch (error) {
+      console.error("Failed to delete activity:", error);
+    }
+  };
+
+  const login = async (credentials: { email: string; password?: string }) => {
+    dispatch({ type: "SET_LOADING", payload: true });
+
+    try {
+      const response = await apiCall("/auth/login", {
+        method: "POST",
+        body: JSON.stringify(credentials),
+      });
+
+      setSessionToken(response.sessionToken);
+      dispatch({ type: "LOGIN", payload: response.user });
+      await syncActivities();
+
+      toast({
+        title: "Welcome back!",
+        description: "Successfully logged in.",
+      });
+    } catch (error) {
+      console.error("Login failed:", error);
+      toast({
+        title: "Login Failed",
+        description: "Please check your credentials and try again.",
+        variant: "destructive",
+      });
+      throw error;
+    } finally {
+      dispatch({ type: "SET_LOADING", payload: false });
+    }
+  };
+
+  const register = async (data: {
+    name: string;
+    email: string;
+    password: string;
+    monthlyTarget?: number;
+  }) => {
+    dispatch({ type: "SET_LOADING", payload: true });
+
+    try {
+      const response = await apiCall("/auth/register", {
+        method: "POST",
+        body: JSON.stringify(data),
+      });
+
+      setSessionToken(response.sessionToken);
+      dispatch({ type: "LOGIN", payload: response.user });
+
+      toast({
+        title: "Account Created!",
+        description: "Welcome to CarbonMeter!",
+      });
+    } catch (error) {
+      console.error("Registration failed:", error);
+      toast({
+        title: "Registration Failed",
+        description: "Please try again with different credentials.",
+        variant: "destructive",
+      });
+      throw error;
+    } finally {
+      dispatch({ type: "SET_LOADING", payload: false });
+    }
+  };
+
+  const loginWithGoogle = async () => {
+    dispatch({ type: "SET_LOADING", payload: true });
+
+    try {
+      // Simulate Google OAuth flow
+      const { data, error } = await supabase.auth.signInWithOAuth({
+        provider: "google",
+        options: {
+          redirectTo: `${window.location.origin}/auth/callback`,
+        },
+      });
+
+      if (error) throw error;
+
+      // The actual user data will be handled by the auth callback
+      toast({
+        title: "Redirecting to Google...",
+        description: "Please complete the authentication process.",
+      });
+    } catch (error) {
+      console.error("Google login failed:", error);
+      toast({
+        title: "Google Login Failed",
+        description: "Please try again.",
+        variant: "destructive",
+      });
+      throw error;
+    } finally {
+      dispatch({ type: "SET_LOADING", payload: false });
+    }
+  };
+
+  const logout = async () => {
+    try {
+      if (getSessionToken()) {
+        await apiCall("/auth/logout", { method: "POST" });
+      }
+    } catch (error) {
+      console.error("Logout error:", error);
+    } finally {
+      removeSessionToken();
+      dispatch({ type: "LOGOUT" });
+      loadDemoData(); // Load demo data after logout
+
+      toast({
+        title: "Logged out",
+        description: "You have been successfully logged out.",
+      });
+    }
+  };
+
+  const syncActivities = async () => {
+    if (!state.isAuthenticated || !getSessionToken()) return;
+
+    dispatch({ type: "SET_SYNC_STATUS", payload: "syncing" });
+
+    try {
+      const response = await apiCall("/activities");
+      dispatch({ type: "SET_ACTIVITIES", payload: response.activities || [] });
+      dispatch({ type: "SET_SYNC_STATUS", payload: "synced" });
+    } catch (error) {
+      console.error("Failed to sync activities:", error);
+      dispatch({ type: "SET_SYNC_STATUS", payload: "error" });
+    }
+  };
+
+  const updateProfile = async (updates: Partial<User>) => {
+    try {
+      if (!state.user) return;
+
+      const response = await apiCall("/auth/profile", {
+        method: "PUT",
+        body: JSON.stringify(updates),
+      });
+
+      dispatch({ type: "SET_USER", payload: response.user });
+
+      toast({
+        title: "Profile Updated",
+        description: "Your profile has been successfully updated.",
+      });
+    } catch (error) {
+      console.error("Profile update failed:", error);
+      toast({
+        title: "Update Failed",
+        description: "Failed to update profile. Please try again.",
+        variant: "destructive",
+      });
+    }
   };
 
   const getTotalFootprint = (period: "week" | "month" | "year" = "month") => {
@@ -337,15 +543,6 @@ export const ActivityProvider: React.FC<{ children: React.ReactNode }> = ({
     return months;
   };
 
-  const login = (user: User) => {
-    dispatch({ type: "LOGIN", payload: user });
-  };
-
-  const logout = () => {
-    dispatch({ type: "LOGOUT" });
-    localStorage.removeItem("carbonmeter_user");
-  };
-
   return (
     <ActivityContext.Provider
       value={{
@@ -358,7 +555,11 @@ export const ActivityProvider: React.FC<{ children: React.ReactNode }> = ({
         getFootprintByCategory,
         getTrendData,
         login,
+        register,
+        loginWithGoogle,
         logout,
+        syncActivities,
+        updateProfile,
       }}
     >
       {children}

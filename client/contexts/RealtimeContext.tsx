@@ -1,5 +1,8 @@
 import React, { createContext, useContext, useReducer, useEffect } from "react";
+import { RealtimeChannel } from "@supabase/supabase-js";
 import { toast } from "@/components/ui/use-toast";
+import { supabase } from "@/lib/supabase";
+import { useActivity } from "./ActivityContext";
 
 export interface Notification {
   id: string;
@@ -20,7 +23,8 @@ export interface LiveUpdate {
     | "goal_progress"
     | "friend_activity"
     | "challenge_update"
-    | "leaderboard_change";
+    | "leaderboard_change"
+    | "community_post";
   data: any;
   timestamp: string;
 }
@@ -32,6 +36,8 @@ interface RealtimeState {
   unreadCount: number;
   achievementStreak: number;
   dailyGoalProgress: number;
+  onlineUsers: number;
+  communityActivity: LiveUpdate[];
 }
 
 type RealtimeAction =
@@ -41,7 +47,9 @@ type RealtimeAction =
   | { type: "ADD_LIVE_UPDATE"; payload: LiveUpdate }
   | { type: "SET_CONNECTION_STATUS"; payload: boolean }
   | { type: "UPDATE_STREAK"; payload: number }
-  | { type: "UPDATE_DAILY_PROGRESS"; payload: number };
+  | { type: "UPDATE_DAILY_PROGRESS"; payload: number }
+  | { type: "SET_ONLINE_USERS"; payload: number }
+  | { type: "ADD_COMMUNITY_ACTIVITY"; payload: LiveUpdate };
 
 const initialState: RealtimeState = {
   notifications: [],
@@ -50,6 +58,8 @@ const initialState: RealtimeState = {
   unreadCount: 0,
   achievementStreak: 0,
   dailyGoalProgress: 0,
+  onlineUsers: 0,
+  communityActivity: [],
 };
 
 const realtimeReducer = (
@@ -85,7 +95,7 @@ const realtimeReducer = (
     case "ADD_LIVE_UPDATE":
       return {
         ...state,
-        liveUpdates: [action.payload, ...state.liveUpdates.slice(0, 49)], // Keep last 50 updates
+        liveUpdates: [action.payload, ...state.liveUpdates.slice(0, 49)],
       };
     case "SET_CONNECTION_STATUS":
       return {
@@ -102,6 +112,19 @@ const realtimeReducer = (
         ...state,
         dailyGoalProgress: action.payload,
       };
+    case "SET_ONLINE_USERS":
+      return {
+        ...state,
+        onlineUsers: action.payload,
+      };
+    case "ADD_COMMUNITY_ACTIVITY":
+      return {
+        ...state,
+        communityActivity: [
+          action.payload,
+          ...state.communityActivity.slice(0, 19),
+        ],
+      };
     default:
       return state;
   }
@@ -115,7 +138,9 @@ const RealtimeContext = createContext<{
   ) => void;
   markAsRead: (id: string) => void;
   markAllAsRead: () => void;
-  simulateRealtimeUpdates: () => void;
+  broadcastActivity: (activity: any) => void;
+  joinUserPresence: () => void;
+  leaveUserPresence: () => void;
 } | null>(null);
 
 export const useRealtime = () => {
@@ -130,52 +155,126 @@ export const RealtimeProvider: React.FC<{ children: React.ReactNode }> = ({
   children,
 }) => {
   const [state, dispatch] = useReducer(realtimeReducer, initialState);
+  const { state: activityState } = useActivity();
+  const userId = activityState.user?.id;
 
-  // Simulate WebSocket connection
   useEffect(() => {
-    const connectToRealtime = () => {
-      dispatch({ type: "SET_CONNECTION_STATUS", payload: true });
+    if (!userId) return;
 
-      // Add initial notifications
-      const welcomeNotification: Notification = {
-        id: "welcome",
-        type: "info",
-        title: "Welcome to CarbonMeter!",
-        message: "Start logging activities to track your carbon footprint.",
-        timestamp: new Date().toISOString(),
-        read: false,
-        action: {
-          label: "Start Tracking",
-          href: "/activity",
-        },
-      };
+    let activityChannel: RealtimeChannel;
+    let presenceChannel: RealtimeChannel;
+    let communityChannel: RealtimeChannel;
 
-      setTimeout(() => {
-        dispatch({ type: "ADD_NOTIFICATION", payload: welcomeNotification });
-        toast({
-          title: welcomeNotification.title,
-          description: welcomeNotification.message,
-        });
-      }, 2000);
+    const setupRealtimeConnections = async () => {
+      try {
+        // Connect to Supabase realtime
+        dispatch({ type: "SET_CONNECTION_STATUS", payload: true });
+
+        // Activity updates channel
+        activityChannel = supabase
+          .channel(`activities:${userId}`)
+          .on(
+            "postgres_changes",
+            {
+              event: "INSERT",
+              schema: "public",
+              table: "activities",
+              filter: `user_id=eq.${userId}`,
+            },
+            (payload) => {
+              const liveUpdate: LiveUpdate = {
+                type: "activity_added",
+                data: payload.new,
+                timestamp: new Date().toISOString(),
+              };
+              dispatch({ type: "ADD_LIVE_UPDATE", payload: liveUpdate });
+
+              addNotification({
+                type: "success",
+                title: "Activity Recorded!",
+                message: `${payload.new.description} - ${payload.new.impact} ${payload.new.unit}`,
+              });
+            },
+          )
+          .subscribe();
+
+        // User presence channel
+        presenceChannel = supabase
+          .channel("user-presence")
+          .on("presence", { event: "sync" }, () => {
+            const state = presenceChannel.presenceState();
+            const userCount = Object.keys(state).length;
+            dispatch({ type: "SET_ONLINE_USERS", payload: userCount });
+          })
+          .on("presence", { event: "join" }, ({ key, newPresences }) => {
+            console.log("User joined:", key, newPresences);
+          })
+          .on("presence", { event: "leave" }, ({ key, leftPresences }) => {
+            console.log("User left:", key, leftPresences);
+          })
+          .subscribe();
+
+        // Community activity channel
+        communityChannel = supabase
+          .channel("community-activity")
+          .on(
+            "postgres_changes",
+            {
+              event: "INSERT",
+              schema: "public",
+              table: "community_posts",
+            },
+            (payload) => {
+              const liveUpdate: LiveUpdate = {
+                type: "community_post",
+                data: payload.new,
+                timestamp: new Date().toISOString(),
+              };
+              dispatch({ type: "ADD_COMMUNITY_ACTIVITY", payload: liveUpdate });
+            },
+          )
+          .on("broadcast", { event: "challenge_update" }, (payload) => {
+            const liveUpdate: LiveUpdate = {
+              type: "challenge_update",
+              data: payload.payload,
+              timestamp: new Date().toISOString(),
+            };
+            dispatch({ type: "ADD_LIVE_UPDATE", payload: liveUpdate });
+          })
+          .subscribe();
+
+        // Join user presence
+        joinUserPresence();
+
+        // Add welcome notification for first-time users
+        setTimeout(() => {
+          addNotification({
+            type: "info",
+            title: "🌱 Welcome to CarbonMeter!",
+            message:
+              "You're now connected to real-time updates. Start logging activities to see live progress!",
+            action: {
+              label: "Start Tracking",
+              href: "/activity",
+            },
+          });
+        }, 2000);
+      } catch (error) {
+        console.error("Realtime connection error:", error);
+        dispatch({ type: "SET_CONNECTION_STATUS", payload: false });
+      }
     };
 
-    connectToRealtime();
+    setupRealtimeConnections();
 
+    // Cleanup on unmount
     return () => {
+      if (activityChannel) activityChannel.unsubscribe();
+      if (presenceChannel) presenceChannel.unsubscribe();
+      if (communityChannel) communityChannel.unsubscribe();
       dispatch({ type: "SET_CONNECTION_STATUS", payload: false });
     };
-  }, []);
-
-  // Simulate real-time updates every 30 seconds
-  useEffect(() => {
-    const interval = setInterval(() => {
-      if (state.isConnected) {
-        simulateRealtimeUpdates();
-      }
-    }, 30000);
-
-    return () => clearInterval(interval);
-  }, [state.isConnected]);
+  }, [userId]);
 
   const addNotification = (
     notification: Omit<Notification, "id" | "timestamp" | "read">,
@@ -205,95 +304,31 @@ export const RealtimeProvider: React.FC<{ children: React.ReactNode }> = ({
     dispatch({ type: "MARK_ALL_READ" });
   };
 
-  const simulateRealtimeUpdates = () => {
-    const updates = [
-      {
-        type: "friend_activity" as const,
-        data: {
-          friendName: "Sarah Green",
-          activity: "logged a 5-mile bike ride",
-          carbonSaved: 2.1,
-        },
+  const broadcastActivity = (activity: any) => {
+    supabase.channel("community-activity").send({
+      type: "broadcast",
+      event: "user_activity",
+      payload: {
+        user_id: userId,
+        activity,
         timestamp: new Date().toISOString(),
       },
-      {
-        type: "challenge_update" as const,
-        data: {
-          challengeName: "Meatless Monday",
-          participantCount: Math.floor(Math.random() * 100) + 1200,
-          yourProgress: Math.floor(Math.random() * 30) + 70,
-        },
-        timestamp: new Date().toISOString(),
-      },
-      {
-        type: "leaderboard_change" as const,
-        data: {
-          newRank: Math.floor(Math.random() * 5) + 3,
-          change: Math.random() > 0.5 ? "up" : "down",
-          category: "Weekly Carbon Reduction",
-        },
-        timestamp: new Date().toISOString(),
-      },
-    ];
+    });
+  };
 
-    const randomUpdate = updates[Math.floor(Math.random() * updates.length)];
-    dispatch({ type: "ADD_LIVE_UPDATE", payload: randomUpdate });
+  const joinUserPresence = () => {
+    if (!userId) return;
 
-    // Create notifications for some updates
-    if (
-      randomUpdate.type === "leaderboard_change" &&
-      randomUpdate.data.change === "up"
-    ) {
-      addNotification({
-        type: "success",
-        title: "Leaderboard Update!",
-        message: `You moved up to rank ${randomUpdate.data.newRank} in ${randomUpdate.data.category}!`,
-        action: {
-          label: "View Leaderboard",
-          href: "/community",
-        },
-      });
-    }
+    const presenceChannel = supabase.channel("user-presence");
+    presenceChannel.track({
+      user_id: userId,
+      online_at: new Date().toISOString(),
+    });
+  };
 
-    if (
-      randomUpdate.type === "challenge_update" &&
-      randomUpdate.data.yourProgress > 85
-    ) {
-      addNotification({
-        type: "achievement",
-        title: "Challenge Progress!",
-        message: `You're ${randomUpdate.data.yourProgress}% through the ${randomUpdate.data.challengeName} challenge!`,
-        action: {
-          label: "View Challenge",
-          href: "/community",
-        },
-      });
-    }
-
-    // Update daily progress simulation
-    const newProgress = Math.min(
-      100,
-      state.dailyGoalProgress + Math.random() * 5,
-    );
-    dispatch({ type: "UPDATE_DAILY_PROGRESS", payload: newProgress });
-
-    // Update streak simulation
-    if (Math.random() > 0.8) {
-      const newStreak = state.achievementStreak + 1;
-      dispatch({ type: "UPDATE_STREAK", payload: newStreak });
-
-      if (newStreak % 7 === 0) {
-        addNotification({
-          type: "achievement",
-          title: "Streak Milestone!",
-          message: `🔥 ${newStreak} day sustainability streak! Keep it up!`,
-          action: {
-            label: "View Profile",
-            href: "/profile",
-          },
-        });
-      }
-    }
+  const leaveUserPresence = () => {
+    const presenceChannel = supabase.channel("user-presence");
+    presenceChannel.untrack();
   };
 
   return (
@@ -304,7 +339,9 @@ export const RealtimeProvider: React.FC<{ children: React.ReactNode }> = ({
         addNotification,
         markAsRead,
         markAllAsRead,
-        simulateRealtimeUpdates,
+        broadcastActivity,
+        joinUserPresence,
+        leaveUserPresence,
       }}
     >
       {children}
