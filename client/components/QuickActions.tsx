@@ -1,6 +1,12 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Plus, Car, Zap, Utensils, ShoppingBag, Sparkles } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import ActivityFormModal from "./ActivityFormModal";
@@ -11,7 +17,7 @@ interface QuickAction {
   label: string;
   description: string;
   color: string;
-  type: 'transport' | 'energy' | 'food' | 'shopping';
+  type: "transport" | "energy" | "food" | "shopping";
 }
 
 const quickActions: QuickAction[] = [
@@ -20,37 +26,41 @@ const quickActions: QuickAction[] = [
     label: "Log Commute",
     description: "Track your daily travel",
     color: "bg-blue-100 text-blue-600 hover:bg-blue-200",
-    type: "transport"
+    type: "transport",
   },
   {
     icon: Zap,
     label: "Energy Usage",
     description: "Record electricity consumption",
     color: "bg-yellow-100 text-yellow-600 hover:bg-yellow-200",
-    type: "energy"
+    type: "energy",
   },
   {
     icon: Utensils,
     label: "Diet Impact",
     description: "Track food choices",
     color: "bg-green-100 text-green-600 hover:bg-green-200",
-    type: "food"
+    type: "food",
   },
   {
     icon: ShoppingBag,
     label: "Purchases",
     description: "Log shopping activities",
     color: "bg-purple-100 text-purple-600 hover:bg-purple-200",
-    type: "shopping"
-  }
+    type: "shopping",
+  },
 ];
 
 export default function QuickActions() {
-  const [activeModal, setActiveModal] = useState<'transport' | 'energy' | 'food' | 'shopping' | null>(null);
+  const [activeModal, setActiveModal] = useState<
+    "transport" | "energy" | "food" | "shopping" | null
+  >(null);
   const [celebrateIndex, setCelebrateIndex] = useState<number | null>(null);
   const { addNotification } = useRealtime();
 
-  const handleActionClick = (type: 'transport' | 'energy' | 'food' | 'shopping') => {
+  const handleActionClick = (
+    type: "transport" | "energy" | "food" | "shopping",
+  ) => {
     setActiveModal(type);
   };
 
@@ -59,18 +69,20 @@ export default function QuickActions() {
 
     // Trigger celebration animation if modal was actually used to add activity
     if (activeModal) {
-      const actionIndex = quickActions.findIndex(action => action.type === activeModal);
+      const actionIndex = quickActions.findIndex(
+        (action) => action.type === activeModal,
+      );
       setCelebrateIndex(actionIndex);
 
       // Add real-time notification
       addNotification({
-        type: 'success',
-        title: 'Activity Added!',
+        type: "success",
+        title: "Activity Added!",
         message: `Great job tracking your ${activeModal} activity. Every action counts! 🌱`,
         action: {
-          label: 'View Dashboard',
-          href: '/dashboard'
-        }
+          label: "View Dashboard",
+          href: "/dashboard",
+        },
       });
 
       // Reset celebration after animation
@@ -108,17 +120,23 @@ export default function QuickActions() {
                     onClick={() => handleActionClick(action.type)}
                   >
                     <motion.div
-                      animate={isoCelebrating ? {
-                        scale: [1, 1.2, 1],
-                        rotate: [0, 5, -5, 0]
-                      } : {}}
+                      animate={
+                        isoCelebrating
+                          ? {
+                              scale: [1, 1.2, 1],
+                              rotate: [0, 5, -5, 0],
+                            }
+                          : {}
+                      }
                       transition={{ duration: 0.6 }}
                     >
                       <Icon className="h-6 w-6" />
                     </motion.div>
                     <div className="text-center">
                       <div className="font-medium text-sm">{action.label}</div>
-                      <div className="text-xs opacity-75">{action.description}</div>
+                      <div className="text-xs opacity-75">
+                        {action.description}
+                      </div>
                     </div>
 
                     {/* Celebration sparkles */}
@@ -133,22 +151,22 @@ export default function QuickActions() {
                                 opacity: 0,
                                 scale: 0,
                                 x: 0,
-                                y: 0
+                                y: 0,
                               }}
                               animate={{
                                 opacity: [0, 1, 0],
                                 scale: [0, 1, 0],
-                                x: Math.cos(i * 60 * Math.PI / 180) * 30,
-                                y: Math.sin(i * 60 * Math.PI / 180) * 30
+                                x: Math.cos((i * 60 * Math.PI) / 180) * 30,
+                                y: Math.sin((i * 60 * Math.PI) / 180) * 30,
                               }}
                               transition={{
                                 duration: 1,
                                 delay: i * 0.1,
-                                ease: "easeOut"
+                                ease: "easeOut",
                               }}
                               style={{
-                                left: '50%',
-                                top: '50%',
+                                left: "50%",
+                                top: "50%",
                               }}
                             >
                               <Sparkles className="h-3 w-3 text-yellow-500" />

@@ -11,17 +11,25 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useRealtime } from "@/contexts/RealtimeContext";
-import { Bell, Check, CheckCheck, Trophy, Info, AlertTriangle, Star } from "lucide-react";
+import {
+  Bell,
+  Check,
+  CheckCheck,
+  Trophy,
+  Info,
+  AlertTriangle,
+  Star,
+} from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Link } from "react-router-dom";
 
 const getNotificationIcon = (type: string) => {
   switch (type) {
-    case 'achievement':
+    case "achievement":
       return <Trophy className="h-4 w-4 text-yellow-600" />;
-    case 'warning':
+    case "warning":
       return <AlertTriangle className="h-4 w-4 text-orange-600" />;
-    case 'success':
+    case "success":
       return <Star className="h-4 w-4 text-green-600" />;
     default:
       return <Info className="h-4 w-4 text-blue-600" />;
@@ -31,9 +39,11 @@ const getNotificationIcon = (type: string) => {
 const formatTimeAgo = (timestamp: string) => {
   const now = new Date();
   const time = new Date(timestamp);
-  const diffInMinutes = Math.floor((now.getTime() - time.getTime()) / (1000 * 60));
-  
-  if (diffInMinutes < 1) return 'Just now';
+  const diffInMinutes = Math.floor(
+    (now.getTime() - time.getTime()) / (1000 * 60),
+  );
+
+  if (diffInMinutes < 1) return "Just now";
   if (diffInMinutes < 60) return `${diffInMinutes}m ago`;
   if (diffInMinutes < 1440) return `${Math.floor(diffInMinutes / 60)}h ago`;
   return `${Math.floor(diffInMinutes / 1440)}d ago`;
@@ -46,7 +56,7 @@ export default function NotificationBell() {
   const recentNotifications = state.notifications.slice(0, 10);
 
   const handleNotificationClick = (notificationId: string) => {
-    if (!state.notifications.find(n => n.id === notificationId)?.read) {
+    if (!state.notifications.find((n) => n.id === notificationId)?.read) {
       markAsRead(notificationId);
     }
   };
@@ -57,7 +67,11 @@ export default function NotificationBell() {
         <Button variant="ghost" size="sm" className="relative h-9 w-9 px-0">
           <motion.div
             animate={state.unreadCount > 0 ? { scale: [1, 1.1, 1] } : {}}
-            transition={{ duration: 0.3, repeat: state.unreadCount > 0 ? Infinity : 0, repeatDelay: 3 }}
+            transition={{
+              duration: 0.3,
+              repeat: state.unreadCount > 0 ? Infinity : 0,
+              repeatDelay: 3,
+            }}
           >
             <Bell className="h-4 w-4" />
           </motion.div>
@@ -69,8 +83,11 @@ export default function NotificationBell() {
                 exit={{ scale: 0 }}
                 className="absolute -top-1 -right-1"
               >
-                <Badge variant="destructive" className="h-5 w-5 p-0 text-xs flex items-center justify-center">
-                  {state.unreadCount > 9 ? '9+' : state.unreadCount}
+                <Badge
+                  variant="destructive"
+                  className="h-5 w-5 p-0 text-xs flex items-center justify-center"
+                >
+                  {state.unreadCount > 9 ? "9+" : state.unreadCount}
                 </Badge>
               </motion.div>
             )}
@@ -82,12 +99,12 @@ export default function NotificationBell() {
           <span>Notifications</span>
           <div className="flex items-center gap-2">
             <motion.div
-              className={`h-2 w-2 rounded-full ${state.isConnected ? 'bg-green-500' : 'bg-red-500'}`}
+              className={`h-2 w-2 rounded-full ${state.isConnected ? "bg-green-500" : "bg-red-500"}`}
               animate={state.isConnected ? { opacity: [1, 0.5, 1] } : {}}
               transition={{ duration: 2, repeat: Infinity }}
             />
             <span className="text-xs text-muted-foreground">
-              {state.isConnected ? 'Live' : 'Offline'}
+              {state.isConnected ? "Live" : "Offline"}
             </span>
             {state.unreadCount > 0 && (
               <Button
@@ -115,7 +132,7 @@ export default function NotificationBell() {
                   key={notification.id}
                   initial={{ opacity: 0, x: -20 }}
                   animate={{ opacity: 1, x: 0 }}
-                  className={`relative ${!notification.read ? 'bg-accent/50' : ''}`}
+                  className={`relative ${!notification.read ? "bg-accent/50" : ""}`}
                 >
                   <DropdownMenuItem
                     className="flex flex-col items-start p-3 cursor-pointer"
@@ -161,8 +178,8 @@ export default function NotificationBell() {
           <>
             <DropdownMenuSeparator />
             <DropdownMenuItem className="text-center justify-center">
-              <Link 
-                to="/notifications" 
+              <Link
+                to="/notifications"
                 className="text-sm text-primary hover:underline"
                 onClick={() => setIsOpen(false)}
               >
