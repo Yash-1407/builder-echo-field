@@ -138,6 +138,32 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
     onClose();
   };
 
+  const handleGoogleLogin = async () => {
+    setIsLoading(true);
+    try {
+      // Simulate Google OAuth flow
+      await new Promise(resolve => setTimeout(resolve, 1500));
+
+      const googleUser: User = {
+        name: 'Google User',
+        email: 'user@gmail.com',
+        monthlyTarget: 4.5,
+        goals: {
+          carbonReduction: 30,
+          transportReduction: 25,
+          renewableEnergy: 80
+        }
+      };
+
+      login(googleUser);
+      onClose();
+    } catch (error) {
+      console.error("Google login error:", error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-[500px]">
