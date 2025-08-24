@@ -224,19 +224,31 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
                 <Button type="submit" disabled={isLoading} className="w-full">
                   {isLoading ? "Signing in..." : "Sign In"}
                 </Button>
-                
+
                 <div className="relative">
                   <div className="absolute inset-0 flex items-center">
                     <span className="w-full border-t" />
                   </div>
                   <div className="relative flex justify-center text-xs uppercase">
-                    <span className="bg-background px-2 text-muted-foreground">Or</span>
+                    <span className="bg-background px-2 text-muted-foreground">Or continue with</span>
                   </div>
                 </div>
-                
-                <Button type="button" variant="outline" onClick={handleDemoLogin} className="w-full">
-                  Try Demo Account
-                </Button>
+
+                <div className="grid grid-cols-2 gap-3">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={handleGoogleLogin}
+                    disabled={isLoading}
+                    className="flex items-center gap-2"
+                  >
+                    <GoogleIcon />
+                    Google
+                  </Button>
+                  <Button type="button" variant="outline" onClick={handleDemoLogin} className="w-full">
+                    Demo
+                  </Button>
+                </div>
               </div>
             </form>
           </TabsContent>
@@ -283,7 +295,7 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
                     type="password"
                     value={signupForm.password}
                     onChange={(e) => setSignupForm(prev => ({ ...prev, password: e.target.value }))}
-                    placeholder="••••••••"
+                    placeholder="••••••���•"
                     required
                   />
                 </div>
