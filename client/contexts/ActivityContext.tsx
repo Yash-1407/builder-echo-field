@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useReducer, useEffect } from 'react';
+import { toast } from '@/components/ui/use-toast';
 
 export interface Activity {
   id: string;
