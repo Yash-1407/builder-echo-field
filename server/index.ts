@@ -26,7 +26,18 @@ import {
   handleGetAnalytics,
   handleGetRecentActivities,
   handleBulkDeleteActivities,
+  handleGetActivityStats,
 } from "./routes/activities";
+import {
+  handleGetPosts,
+  handleCreatePost,
+  handleToggleLike,
+  handleGetComments,
+  handleCreateComment,
+  handleGetChallenges,
+  handleJoinChallenge,
+  handleGetLeaderboard,
+} from "./routes/community";
 
 export function createServer() {
   const app = express();
@@ -66,7 +77,7 @@ export function createServer() {
   // Authentication routes
   app.post("/api/auth/register", handleRegister);
   app.post("/api/auth/login", handleLogin);
-  app.get("/api/auth/user", requireAuth, handleGetUser);
+  app.get("/api/auth/me", requireAuth, handleGetUser);
   app.put("/api/auth/profile", requireAuth, handleUpdateProfile);
   app.post("/api/auth/logout", requireAuth, handleLogout);
 
@@ -74,11 +85,22 @@ export function createServer() {
   app.get("/api/activities", requireAuth, handleGetActivities);
   app.get("/api/activities/recent", requireAuth, handleGetRecentActivities);
   app.get("/api/activities/analytics", requireAuth, handleGetAnalytics);
+  app.get("/api/activities/stats", requireAuth, handleGetActivityStats);
   app.get("/api/activities/:id", requireAuth, handleGetActivity);
   app.post("/api/activities", requireAuth, handleCreateActivity);
   app.put("/api/activities/:id", requireAuth, handleUpdateActivity);
   app.delete("/api/activities/:id", requireAuth, handleDeleteActivity);
   app.delete("/api/activities", requireAuth, handleBulkDeleteActivities);
+
+  // Community routes
+  app.get("/api/community/posts", handleGetPosts);
+  app.post("/api/community/posts", requireAuth, handleCreatePost);
+  app.post("/api/community/posts/:postId/like", requireAuth, handleToggleLike);
+  app.get("/api/community/posts/:postId/comments", handleGetComments);
+  app.post("/api/community/posts/:postId/comments", requireAuth, handleCreateComment);
+  app.get("/api/community/challenges", handleGetChallenges);
+  app.post("/api/community/challenges/:challengeId/join", requireAuth, handleJoinChallenge);
+  app.get("/api/community/leaderboard", handleGetLeaderboard);
 
   // Error handling middleware
   app.use(

@@ -178,6 +178,97 @@ export const handleDeleteActivity: RequestHandler = async (req, res) => {
   }
 };
 
+// Get activity analytics (backwards compatibility)
+export const handleGetAnalytics = handleGetActivityStats;
+
+// Get recent activities
+export const handleGetRecentActivities: RequestHandler = async (req, res) => {
+  try {
+    const userId = req.user?.id;
+    if (!userId) {
+      return res.status(401).json({ error: "Not authenticated" });
+    }
+
+    const { limit = 10 } = req.query;
+
+    const { data: activities, error } = await supabase
+      .from("activities")
+      .select("*")
+      .eq("user_id", userId)
+      .order("created_at", { ascending: false })
+      .limit(Number(limit));
+
+    if (error) {
+      console.error("Get recent activities error:", error);
+      return res.status(500).json({ error: "Failed to fetch recent activities" });
+    }
+
+    res.json({ activities: activities || [] });
+  } catch (error) {
+    console.error("Get recent activities error:", error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+};
+
+// Get single activity
+export const handleGetActivity: RequestHandler = async (req, res) => {
+  try {
+    const userId = req.user?.id;
+    const activityId = req.params.id;
+
+    if (!userId) {
+      return res.status(401).json({ error: "Not authenticated" });
+    }
+
+    const { data: activity, error } = await supabase
+      .from("activities")
+      .select("*")
+      .eq("id", activityId)
+      .eq("user_id", userId)
+      .single();
+
+    if (error || !activity) {
+      return res.status(404).json({ error: "Activity not found" });
+    }
+
+    res.json({ activity });
+  } catch (error) {
+    console.error("Get activity error:", error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+};
+
+// Bulk delete activities
+export const handleBulkDeleteActivities: RequestHandler = async (req, res) => {
+  try {
+    const userId = req.user?.id;
+    if (!userId) {
+      return res.status(401).json({ error: "Not authenticated" });
+    }
+
+    const { ids } = req.body;
+    if (!Array.isArray(ids) || ids.length === 0) {
+      return res.status(400).json({ error: "Activity IDs array is required" });
+    }
+
+    const { error } = await supabase
+      .from("activities")
+      .delete()
+      .eq("user_id", userId)
+      .in("id", ids);
+
+    if (error) {
+      console.error("Bulk delete activities error:", error);
+      return res.status(500).json({ error: "Failed to delete activities" });
+    }
+
+    res.json({ message: `${ids.length} activities deleted successfully` });
+  } catch (error) {
+    console.error("Bulk delete activities error:", error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+};
+
 // Get activity statistics
 export const handleGetActivityStats: RequestHandler = async (req, res) => {
   try {
