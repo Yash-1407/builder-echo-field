@@ -21,10 +21,12 @@ export const handleGetPosts: RequestHandler = async (req, res) => {
 
     let query = supabase
       .from("community_posts")
-      .select(`
+      .select(
+        `
         *,
         users:user_id (name, email)
-      `)
+      `,
+      )
       .order("created_at", { ascending: false })
       .range(offset, offset + Number(limit) - 1);
 
@@ -86,10 +88,12 @@ export const handleCreatePost: RequestHandler = async (req, res) => {
         comments_count: 0,
         created_at: new Date().toISOString(),
       })
-      .select(`
+      .select(
+        `
         *,
         users:user_id (name, email)
-      `)
+      `,
+      )
       .single();
 
     if (error) {
@@ -139,13 +143,11 @@ export const handleToggleLike: RequestHandler = async (req, res) => {
       res.json({ liked: false, message: "Post unliked" });
     } else {
       // Like the post
-      await supabase
-        .from("post_likes")
-        .insert({
-          user_id: userId,
-          post_id: postId,
-          created_at: new Date().toISOString(),
-        });
+      await supabase.from("post_likes").insert({
+        user_id: userId,
+        post_id: postId,
+        created_at: new Date().toISOString(),
+      });
 
       // Increase like count
       await supabase.rpc("increment_post_likes", { post_id: postId });
@@ -167,10 +169,12 @@ export const handleGetComments: RequestHandler = async (req, res) => {
 
     const { data: comments, error } = await supabase
       .from("post_comments")
-      .select(`
+      .select(
+        `
         *,
         users:user_id (name, email)
-      `)
+      `,
+      )
       .eq("post_id", postId)
       .order("created_at", { ascending: true })
       .range(offset, offset + Number(limit) - 1);
@@ -207,10 +211,12 @@ export const handleCreateComment: RequestHandler = async (req, res) => {
         content: commentData.content,
         created_at: new Date().toISOString(),
       })
-      .select(`
+      .select(
+        `
         *,
         users:user_id (name, email)
-      `)
+      `,
+      )
       .single();
 
     if (error) {
@@ -279,17 +285,17 @@ export const handleJoinChallenge: RequestHandler = async (req, res) => {
       .single();
 
     if (existingParticipation) {
-      return res.status(400).json({ error: "Already participating in this challenge" });
+      return res
+        .status(400)
+        .json({ error: "Already participating in this challenge" });
     }
 
-    const { error } = await supabase
-      .from("challenge_participants")
-      .insert({
-        user_id: userId,
-        challenge_id: challengeId,
-        progress: 0,
-        joined_at: new Date().toISOString(),
-      });
+    const { error } = await supabase.from("challenge_participants").insert({
+      user_id: userId,
+      challenge_id: challengeId,
+      progress: 0,
+      joined_at: new Date().toISOString(),
+    });
 
     if (error) {
       console.error("Join challenge error:", error);

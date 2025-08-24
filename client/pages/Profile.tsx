@@ -1,6 +1,12 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -9,10 +15,23 @@ import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Switch } from "@/components/ui/switch";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Progress } from "@/components/ui/progress";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { useActivity } from "@/contexts/ActivityContext";
 import { useRealtime } from "@/contexts/RealtimeContext";
 import {
@@ -103,9 +122,15 @@ interface ActivitySummary {
 }
 
 export default function Profile() {
-  const { state, getTotalFootprint, getFootprintByCategory, updateProfile, logout } = useActivity();
+  const {
+    state,
+    getTotalFootprint,
+    getFootprintByCategory,
+    updateProfile,
+    logout,
+  } = useActivity();
   const { state: realtimeState } = useRealtime();
-  
+
   const [isEditing, setIsEditing] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
@@ -326,27 +351,37 @@ export default function Profile() {
     const monthAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
 
     const thisWeekActivities = state.activities.filter(
-      (a) => new Date(a.date) >= weekAgo
+      (a) => new Date(a.date) >= weekAgo,
     );
     const thisMonthActivities = state.activities.filter(
-      (a) => new Date(a.date) >= monthAgo
+      (a) => new Date(a.date) >= monthAgo,
     );
 
-    const totalEmissions = state.activities.reduce((sum, a) => sum + a.impact, 0);
-    const categoryBreakdown = getFootprintByCategory().reduce((acc, cat) => {
-      acc[cat.name] = cat.value;
-      return acc;
-    }, {} as { [key: string]: number });
+    const totalEmissions = state.activities.reduce(
+      (sum, a) => sum + a.impact,
+      0,
+    );
+    const categoryBreakdown = getFootprintByCategory().reduce(
+      (acc, cat) => {
+        acc[cat.name] = cat.value;
+        return acc;
+      },
+      {} as { [key: string]: number },
+    );
 
     setActivitySummary({
       totalActivities: state.activities.length,
       thisWeek: thisWeekActivities.length,
       thisMonth: thisMonthActivities.length,
       totalEmissions,
-      emissionsSaved: Math.max(0, (profileForm.monthlyTarget * 12) - totalEmissions),
-      averageDaily: thisMonthActivities.length > 0 
-        ? totalEmissions / thisMonthActivities.length 
-        : 0,
+      emissionsSaved: Math.max(
+        0,
+        profileForm.monthlyTarget * 12 - totalEmissions,
+      ),
+      averageDaily:
+        thisMonthActivities.length > 0
+          ? totalEmissions / thisMonthActivities.length
+          : 0,
       categoryBreakdown,
     });
   };
@@ -356,7 +391,7 @@ export default function Profile() {
     try {
       await updateProfile(profileForm);
       setIsEditing(false);
-      
+
       toast({
         title: "Profile Updated! ✅",
         description: "Your profile information has been saved successfully.",
@@ -384,11 +419,15 @@ export default function Profile() {
 
     try {
       // API call would go here
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      setPasswordForm({ currentPassword: "", newPassword: "", confirmPassword: "" });
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+
+      setPasswordForm({
+        currentPassword: "",
+        newPassword: "",
+        confirmPassword: "",
+      });
       setShowPasswordChange(false);
-      
+
       toast({
         title: "Password Changed! 🔒",
         description: "Your password has been updated successfully.",
@@ -405,13 +444,13 @@ export default function Profile() {
   const handleDeleteAccount = async () => {
     try {
       // API call would go here
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+
       toast({
         title: "Account Deleted",
         description: "Your account has been permanently deleted.",
       });
-      
+
       logout();
     } catch (error) {
       toast({
@@ -430,7 +469,9 @@ export default function Profile() {
       target: 100,
       current: 0,
       unit: "units",
-      deadline: new Date(Date.now() + 90 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+      deadline: new Date(Date.now() + 90 * 24 * 60 * 60 * 1000)
+        .toISOString()
+        .split("T")[0],
       category: "custom",
       priority: "medium",
       isActive: true,
@@ -439,36 +480,36 @@ export default function Profile() {
   };
 
   const toggleGoal = (goalId: string) => {
-    setGoals(goals.map(goal => 
-      goal.id === goalId 
-        ? { ...goal, isActive: !goal.isActive }
-        : goal
-    ));
+    setGoals(
+      goals.map((goal) =>
+        goal.id === goalId ? { ...goal, isActive: !goal.isActive } : goal,
+      ),
+    );
   };
 
   const deleteGoal = (goalId: string) => {
-    setGoals(goals.filter(goal => goal.id !== goalId));
+    setGoals(goals.filter((goal) => goal.id !== goalId));
   };
 
-  const exportData = (format: 'json' | 'csv') => {
+  const exportData = (format: "json" | "csv") => {
     const data = {
       profile: profileForm,
       activities: state.activities,
-      achievements: achievements.filter(a => a.earned),
+      achievements: achievements.filter((a) => a.earned),
       goals: goals,
       stats: activitySummary,
       exportDate: new Date().toISOString(),
     };
 
     const blob = new Blob(
-      [format === 'json' ? JSON.stringify(data, null, 2) : convertToCSV(data)], 
-      { type: format === 'json' ? 'application/json' : 'text/csv' }
+      [format === "json" ? JSON.stringify(data, null, 2) : convertToCSV(data)],
+      { type: format === "json" ? "application/json" : "text/csv" },
     );
-    
+
     const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
+    const a = document.createElement("a");
     a.href = url;
-    a.download = `carbonmeter-profile-${format(new Date(), 'yyyy-MM-dd')}.${format}`;
+    a.download = `carbonmeter-profile-${format(new Date(), "yyyy-MM-dd")}.${format}`;
     a.click();
     URL.revokeObjectURL(url);
 
@@ -480,8 +521,15 @@ export default function Profile() {
 
   const convertToCSV = (data: any) => {
     // Simple CSV conversion for activities
-    const headers = ['Date', 'Type', 'Description', 'Impact', 'Unit', 'Category'];
-    const rows = state.activities.map(activity => [
+    const headers = [
+      "Date",
+      "Type",
+      "Description",
+      "Impact",
+      "Unit",
+      "Category",
+    ];
+    const rows = state.activities.map((activity) => [
       activity.date,
       activity.type,
       activity.description,
@@ -489,15 +537,20 @@ export default function Profile() {
       activity.unit,
       activity.category,
     ]);
-    
-    return [headers, ...rows].map(row => row.join(',')).join('\n');
+
+    return [headers, ...rows].map((row) => row.join(",")).join("\n");
   };
 
   const earnedAchievements = achievements.filter((a) => a.earned);
   const totalPoints = earnedAchievements.reduce((sum, a) => sum + a.points, 0);
-  const userLevel = totalPoints >= 1000 ? "Eco Legend" : 
-                   totalPoints >= 500 ? "Green Guardian" : 
-                   totalPoints >= 200 ? "Eco Warrior" : "Eco Explorer";
+  const userLevel =
+    totalPoints >= 1000
+      ? "Eco Legend"
+      : totalPoints >= 500
+        ? "Green Guardian"
+        : totalPoints >= 200
+          ? "Eco Warrior"
+          : "Eco Explorer";
 
   const monthlyFootprint = getTotalFootprint("month");
   const yearlyFootprint = getTotalFootprint("year");
@@ -521,7 +574,8 @@ export default function Profile() {
             Profile & Settings
           </h1>
           <p className="text-muted-foreground mt-1">
-            Manage your account, track achievements, and customize your experience
+            Manage your account, track achievements, and customize your
+            experience
           </p>
         </div>
 
@@ -585,7 +639,9 @@ export default function Profile() {
                     <p className="text-lg font-bold text-blue-600">
                       {earnedAchievements.length}
                     </p>
-                    <p className="text-xs text-muted-foreground">Achievements</p>
+                    <p className="text-xs text-muted-foreground">
+                      Achievements
+                    </p>
                   </div>
                   <div>
                     <p className="text-lg font-bold text-purple-600">
@@ -606,11 +662,18 @@ export default function Profile() {
                   <div className="flex justify-between text-sm">
                     <span>Monthly Goal</span>
                     <span>
-                      {Math.min(100, (monthlyFootprint / profileForm.monthlyTarget) * 100).toFixed(0)}%
+                      {Math.min(
+                        100,
+                        (monthlyFootprint / profileForm.monthlyTarget) * 100,
+                      ).toFixed(0)}
+                      %
                     </span>
                   </div>
-                  <Progress 
-                    value={Math.min(100, (monthlyFootprint / profileForm.monthlyTarget) * 100)} 
+                  <Progress
+                    value={Math.min(
+                      100,
+                      (monthlyFootprint / profileForm.monthlyTarget) * 100,
+                    )}
                     className="h-2"
                   />
                   <p className="text-xs text-muted-foreground">
@@ -631,9 +694,16 @@ export default function Profile() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.1 }}
           >
-            <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
+            <Tabs
+              value={activeTab}
+              onValueChange={setActiveTab}
+              className="space-y-6"
+            >
               <TabsList className="grid w-full grid-cols-5">
-                <TabsTrigger value="overview" className="flex items-center gap-2">
+                <TabsTrigger
+                  value="overview"
+                  className="flex items-center gap-2"
+                >
                   <BarChart3 className="h-4 w-4" />
                   Overview
                 </TabsTrigger>
@@ -641,15 +711,24 @@ export default function Profile() {
                   <Target className="h-4 w-4" />
                   Goals
                 </TabsTrigger>
-                <TabsTrigger value="achievements" className="flex items-center gap-2">
+                <TabsTrigger
+                  value="achievements"
+                  className="flex items-center gap-2"
+                >
                   <Award className="h-4 w-4" />
                   Awards
                 </TabsTrigger>
-                <TabsTrigger value="profile" className="flex items-center gap-2">
+                <TabsTrigger
+                  value="profile"
+                  className="flex items-center gap-2"
+                >
                   <User className="h-4 w-4" />
                   Profile
                 </TabsTrigger>
-                <TabsTrigger value="settings" className="flex items-center gap-2">
+                <TabsTrigger
+                  value="settings"
+                  className="flex items-center gap-2"
+                >
                   <Settings className="h-4 w-4" />
                   Settings
                 </TabsTrigger>
@@ -663,9 +742,15 @@ export default function Profile() {
                     <CardContent className="p-4">
                       <div className="flex items-center justify-between">
                         <div>
-                          <p className="text-sm text-muted-foreground">This Week</p>
-                          <p className="text-2xl font-bold">{activitySummary.thisWeek}</p>
-                          <p className="text-xs text-muted-foreground">activities</p>
+                          <p className="text-sm text-muted-foreground">
+                            This Week
+                          </p>
+                          <p className="text-2xl font-bold">
+                            {activitySummary.thisWeek}
+                          </p>
+                          <p className="text-xs text-muted-foreground">
+                            activities
+                          </p>
                         </div>
                         <Calendar className="h-8 w-8 text-blue-600" />
                       </div>
@@ -676,9 +761,15 @@ export default function Profile() {
                     <CardContent className="p-4">
                       <div className="flex items-center justify-between">
                         <div>
-                          <p className="text-sm text-muted-foreground">This Month</p>
-                          <p className="text-2xl font-bold">{monthlyFootprint.toFixed(1)}</p>
-                          <p className="text-xs text-muted-foreground">kg CO₂</p>
+                          <p className="text-sm text-muted-foreground">
+                            This Month
+                          </p>
+                          <p className="text-2xl font-bold">
+                            {monthlyFootprint.toFixed(1)}
+                          </p>
+                          <p className="text-xs text-muted-foreground">
+                            kg CO₂
+                          </p>
                         </div>
                         <Leaf className="h-8 w-8 text-green-600" />
                       </div>
@@ -689,9 +780,15 @@ export default function Profile() {
                     <CardContent className="p-4">
                       <div className="flex items-center justify-between">
                         <div>
-                          <p className="text-sm text-muted-foreground">CO₂ Saved</p>
-                          <p className="text-2xl font-bold">{activitySummary.emissionsSaved.toFixed(1)}</p>
-                          <p className="text-xs text-muted-foreground">kg CO₂</p>
+                          <p className="text-sm text-muted-foreground">
+                            CO₂ Saved
+                          </p>
+                          <p className="text-2xl font-bold">
+                            {activitySummary.emissionsSaved.toFixed(1)}
+                          </p>
+                          <p className="text-xs text-muted-foreground">
+                            kg CO₂
+                          </p>
                         </div>
                         <TrendingDown className="h-8 w-8 text-eco-600" />
                       </div>
@@ -702,8 +799,12 @@ export default function Profile() {
                     <CardContent className="p-4">
                       <div className="flex items-center justify-between">
                         <div>
-                          <p className="text-sm text-muted-foreground">Current Streak</p>
-                          <p className="text-2xl font-bold">{streaks.current}</p>
+                          <p className="text-sm text-muted-foreground">
+                            Current Streak
+                          </p>
+                          <p className="text-2xl font-bold">
+                            {streaks.current}
+                          </p>
                           <p className="text-xs text-muted-foreground">days</p>
                         </div>
                         <Trophy className="h-8 w-8 text-yellow-600" />
@@ -716,53 +817,76 @@ export default function Profile() {
                 <Card>
                   <CardHeader>
                     <CardTitle>Impact by Category</CardTitle>
-                    <CardDescription>Your carbon footprint breakdown</CardDescription>
+                    <CardDescription>
+                      Your carbon footprint breakdown
+                    </CardDescription>
                   </CardHeader>
                   <CardContent>
                     <div className="grid md:grid-cols-2 gap-6">
                       <div className="space-y-4">
-                        {Object.entries(activitySummary.categoryBreakdown).map(([category, value]) => {
-                          const percentage = (value / monthlyFootprint) * 100 || 0;
-                          const icon = category === "Transportation" ? Car :
-                                     category === "Energy" ? Zap :
-                                     category === "Food" ? UtensilsCrossed :
-                                     ShoppingBag;
-                          const IconComponent = icon;
-                          
-                          return (
-                            <div key={category} className="space-y-2">
-                              <div className="flex items-center justify-between">
-                                <div className="flex items-center gap-2">
-                                  <IconComponent className="h-4 w-4" />
-                                  <span className="text-sm font-medium">{category}</span>
+                        {Object.entries(activitySummary.categoryBreakdown).map(
+                          ([category, value]) => {
+                            const percentage =
+                              (value / monthlyFootprint) * 100 || 0;
+                            const icon =
+                              category === "Transportation"
+                                ? Car
+                                : category === "Energy"
+                                  ? Zap
+                                  : category === "Food"
+                                    ? UtensilsCrossed
+                                    : ShoppingBag;
+                            const IconComponent = icon;
+
+                            return (
+                              <div key={category} className="space-y-2">
+                                <div className="flex items-center justify-between">
+                                  <div className="flex items-center gap-2">
+                                    <IconComponent className="h-4 w-4" />
+                                    <span className="text-sm font-medium">
+                                      {category}
+                                    </span>
+                                  </div>
+                                  <span className="text-sm text-muted-foreground">
+                                    {value.toFixed(1)} kg
+                                  </span>
                                 </div>
-                                <span className="text-sm text-muted-foreground">
-                                  {value.toFixed(1)} kg
+                                <Progress value={percentage} className="h-2" />
+                                <span className="text-xs text-muted-foreground">
+                                  {percentage.toFixed(0)}% of total emissions
                                 </span>
                               </div>
-                              <Progress value={percentage} className="h-2" />
-                              <span className="text-xs text-muted-foreground">
-                                {percentage.toFixed(0)}% of total emissions
-                              </span>
-                            </div>
-                          );
-                        })}
+                            );
+                          },
+                        )}
                       </div>
-                      
+
                       <div className="space-y-4">
                         <h4 className="font-medium">Quick Insights</h4>
                         <div className="space-y-3">
                           <Alert>
                             <Info className="h-4 w-4" />
                             <AlertDescription>
-                              You're {monthlyFootprint <= profileForm.monthlyTarget ? "on track" : "over"} your monthly target by {Math.abs(monthlyFootprint - profileForm.monthlyTarget).toFixed(1)} kg CO₂.
+                              You're{" "}
+                              {monthlyFootprint <= profileForm.monthlyTarget
+                                ? "on track"
+                                : "over"}{" "}
+                              your monthly target by{" "}
+                              {Math.abs(
+                                monthlyFootprint - profileForm.monthlyTarget,
+                              ).toFixed(1)}{" "}
+                              kg CO₂.
                             </AlertDescription>
                           </Alert>
-                          
+
                           <Alert>
                             <TrendingUp className="h-4 w-4" />
                             <AlertDescription>
-                              Your {Object.entries(activitySummary.categoryBreakdown).reduce((a, b) => a[1] > b[1] ? a : b)[0].toLowerCase()} activities have the highest impact this month.
+                              Your{" "}
+                              {Object.entries(activitySummary.categoryBreakdown)
+                                .reduce((a, b) => (a[1] > b[1] ? a : b))[0]
+                                .toLowerCase()}{" "}
+                              activities have the highest impact this month.
                             </AlertDescription>
                           </Alert>
                         </div>
@@ -775,23 +899,41 @@ export default function Profile() {
                 <Card>
                   <CardHeader>
                     <CardTitle>Recent Activity</CardTitle>
-                    <CardDescription>Your latest sustainability actions</CardDescription>
+                    <CardDescription>
+                      Your latest sustainability actions
+                    </CardDescription>
                   </CardHeader>
                   <CardContent>
                     <div className="space-y-3">
                       {state.activities.slice(0, 5).map((activity) => (
-                        <div key={activity.id} className="flex items-center justify-between p-3 bg-muted/50 rounded-lg">
+                        <div
+                          key={activity.id}
+                          className="flex items-center justify-between p-3 bg-muted/50 rounded-lg"
+                        >
                           <div className="flex items-center gap-3">
                             <div className="p-2 bg-background rounded-full">
-                              {activity.type === "transport" && <Car className="h-4 w-4" />}
-                              {activity.type === "energy" && <Zap className="h-4 w-4" />}
-                              {activity.type === "food" && <UtensilsCrossed className="h-4 w-4" />}
-                              {activity.type === "shopping" && <ShoppingBag className="h-4 w-4" />}
+                              {activity.type === "transport" && (
+                                <Car className="h-4 w-4" />
+                              )}
+                              {activity.type === "energy" && (
+                                <Zap className="h-4 w-4" />
+                              )}
+                              {activity.type === "food" && (
+                                <UtensilsCrossed className="h-4 w-4" />
+                              )}
+                              {activity.type === "shopping" && (
+                                <ShoppingBag className="h-4 w-4" />
+                              )}
                             </div>
                             <div>
-                              <p className="font-medium text-sm">{activity.description}</p>
+                              <p className="font-medium text-sm">
+                                {activity.description}
+                              </p>
                               <p className="text-xs text-muted-foreground">
-                                {format(new Date(activity.date), "MMM dd, yyyy")}
+                                {format(
+                                  new Date(activity.date),
+                                  "MMM dd, yyyy",
+                                )}
                               </p>
                             </div>
                           </div>
@@ -809,8 +951,12 @@ export default function Profile() {
               <TabsContent value="goals" className="space-y-6">
                 <div className="flex justify-between items-center">
                   <div>
-                    <h3 className="text-lg font-semibold">Sustainability Goals</h3>
-                    <p className="text-sm text-muted-foreground">Track your progress towards environmental targets</p>
+                    <h3 className="text-lg font-semibold">
+                      Sustainability Goals
+                    </h3>
+                    <p className="text-sm text-muted-foreground">
+                      Track your progress towards environmental targets
+                    </p>
                   </div>
                   <Button onClick={addNewGoal} size="sm">
                     <Plus className="h-4 w-4 mr-2" />
@@ -827,15 +973,22 @@ export default function Profile() {
                         animate={{ opacity: 1, y: 0 }}
                         exit={{ opacity: 0, y: -20 }}
                       >
-                        <Card className={`${!goal.isActive ? "opacity-60" : ""}`}>
+                        <Card
+                          className={`${!goal.isActive ? "opacity-60" : ""}`}
+                        >
                           <CardContent className="p-6">
                             <div className="flex items-start justify-between mb-4">
                               <div className="space-y-1">
                                 <div className="flex items-center gap-2">
                                   <h4 className="font-medium">{goal.title}</h4>
-                                  <Badge 
-                                    variant={goal.priority === "high" ? "destructive" : 
-                                           goal.priority === "medium" ? "default" : "secondary"}
+                                  <Badge
+                                    variant={
+                                      goal.priority === "high"
+                                        ? "destructive"
+                                        : goal.priority === "medium"
+                                          ? "default"
+                                          : "secondary"
+                                    }
                                     className="text-xs"
                                   >
                                     {goal.priority}
@@ -844,7 +997,9 @@ export default function Profile() {
                                     {goal.category}
                                   </Badge>
                                 </div>
-                                <p className="text-sm text-muted-foreground">{goal.description}</p>
+                                <p className="text-sm text-muted-foreground">
+                                  {goal.description}
+                                </p>
                               </div>
                               <div className="flex items-center gap-2">
                                 <Switch
@@ -869,16 +1024,26 @@ export default function Profile() {
                                   {goal.current}/{goal.target} {goal.unit}
                                 </span>
                               </div>
-                              <Progress 
-                                value={Math.min(100, (goal.current / goal.target) * 100)} 
+                              <Progress
+                                value={Math.min(
+                                  100,
+                                  (goal.current / goal.target) * 100,
+                                )}
                                 className="h-2"
                               />
                               <div className="flex justify-between text-xs text-muted-foreground">
                                 <span>
-                                  {Math.round((goal.current / goal.target) * 100)}% complete
+                                  {Math.round(
+                                    (goal.current / goal.target) * 100,
+                                  )}
+                                  % complete
                                 </span>
                                 <span>
-                                  Due: {format(new Date(goal.deadline), "MMM dd, yyyy")}
+                                  Due:{" "}
+                                  {format(
+                                    new Date(goal.deadline),
+                                    "MMM dd, yyyy",
+                                  )}
                                 </span>
                               </div>
                             </div>
@@ -901,21 +1066,28 @@ export default function Profile() {
                         animate={{ opacity: 1, scale: 1 }}
                         transition={{ delay: index * 0.1 }}
                       >
-                        <Card className={`relative overflow-hidden ${
-                          achievement.earned
-                            ? "bg-gradient-to-br from-green-50 to-emerald-50 border-green-200"
-                            : "bg-gray-50 border-gray-200 opacity-75"
-                        }`}>
+                        <Card
+                          className={`relative overflow-hidden ${
+                            achievement.earned
+                              ? "bg-gradient-to-br from-green-50 to-emerald-50 border-green-200"
+                              : "bg-gray-50 border-gray-200 opacity-75"
+                          }`}
+                        >
                           <CardContent className="p-6">
                             <div className="flex items-start justify-between mb-3">
-                              <span className={`text-3xl ${achievement.earned ? "" : "grayscale"}`}>
+                              <span
+                                className={`text-3xl ${achievement.earned ? "" : "grayscale"}`}
+                              >
                                 {achievement.icon}
                               </span>
                               <div className="text-right">
-                                <Badge 
+                                <Badge
                                   variant={
-                                    achievement.rarity === "legendary" ? "destructive" :
-                                    achievement.rarity === "rare" ? "default" : "secondary"
+                                    achievement.rarity === "legendary"
+                                      ? "destructive"
+                                      : achievement.rarity === "rare"
+                                        ? "default"
+                                        : "secondary"
                                   }
                                   className="text-xs"
                                 >
@@ -927,7 +1099,9 @@ export default function Profile() {
                               </div>
                             </div>
 
-                            <h4 className="font-semibold mb-1">{achievement.title}</h4>
+                            <h4 className="font-semibold mb-1">
+                              {achievement.title}
+                            </h4>
                             <p className="text-sm text-muted-foreground mb-3">
                               {achievement.description}
                             </p>
@@ -935,7 +1109,11 @@ export default function Profile() {
                             {achievement.earned ? (
                               achievement.earnedDate && (
                                 <p className="text-xs text-green-600">
-                                  Earned: {format(new Date(achievement.earnedDate), "MMM dd, yyyy")}
+                                  Earned:{" "}
+                                  {format(
+                                    new Date(achievement.earnedDate),
+                                    "MMM dd, yyyy",
+                                  )}
                                 </p>
                               )
                             ) : (
@@ -944,7 +1122,10 @@ export default function Profile() {
                                   <span>Progress</span>
                                   <span>{achievement.progress}%</span>
                                 </div>
-                                <Progress value={achievement.progress} className="h-1" />
+                                <Progress
+                                  value={achievement.progress}
+                                  className="h-1"
+                                />
                                 {achievement.requirement && (
                                   <p className="text-xs text-muted-foreground">
                                     {achievement.requirement}
@@ -967,7 +1148,9 @@ export default function Profile() {
                     <div className="flex justify-between items-center">
                       <div>
                         <CardTitle>Profile Information</CardTitle>
-                        <CardDescription>Update your personal information and preferences</CardDescription>
+                        <CardDescription>
+                          Update your personal information and preferences
+                        </CardDescription>
                       </div>
                       <Button
                         variant={isEditing ? "outline" : "default"}
@@ -985,7 +1168,12 @@ export default function Profile() {
                         <Input
                           id="name"
                           value={profileForm.name}
-                          onChange={(e) => setProfileForm(prev => ({ ...prev, name: e.target.value }))}
+                          onChange={(e) =>
+                            setProfileForm((prev) => ({
+                              ...prev,
+                              name: e.target.value,
+                            }))
+                          }
                           disabled={!isEditing}
                         />
                       </div>
@@ -995,7 +1183,12 @@ export default function Profile() {
                           id="email"
                           type="email"
                           value={profileForm.email}
-                          onChange={(e) => setProfileForm(prev => ({ ...prev, email: e.target.value }))}
+                          onChange={(e) =>
+                            setProfileForm((prev) => ({
+                              ...prev,
+                              email: e.target.value,
+                            }))
+                          }
                           disabled={!isEditing}
                         />
                       </div>
@@ -1006,7 +1199,12 @@ export default function Profile() {
                       <Textarea
                         id="bio"
                         value={profileForm.bio}
-                        onChange={(e) => setProfileForm(prev => ({ ...prev, bio: e.target.value }))}
+                        onChange={(e) =>
+                          setProfileForm((prev) => ({
+                            ...prev,
+                            bio: e.target.value,
+                          }))
+                        }
                         disabled={!isEditing}
                         rows={3}
                       />
@@ -1018,7 +1216,12 @@ export default function Profile() {
                         <Input
                           id="location"
                           value={profileForm.location}
-                          onChange={(e) => setProfileForm(prev => ({ ...prev, location: e.target.value }))}
+                          onChange={(e) =>
+                            setProfileForm((prev) => ({
+                              ...prev,
+                              location: e.target.value,
+                            }))
+                          }
                           disabled={!isEditing}
                         />
                       </div>
@@ -1027,7 +1230,12 @@ export default function Profile() {
                         <Input
                           id="website"
                           value={profileForm.website}
-                          onChange={(e) => setProfileForm(prev => ({ ...prev, website: e.target.value }))}
+                          onChange={(e) =>
+                            setProfileForm((prev) => ({
+                              ...prev,
+                              website: e.target.value,
+                            }))
+                          }
                           disabled={!isEditing}
                         />
                       </div>
@@ -1039,18 +1247,30 @@ export default function Profile() {
                         <Input
                           id="phone"
                           value={profileForm.phoneNumber}
-                          onChange={(e) => setProfileForm(prev => ({ ...prev, phoneNumber: e.target.value }))}
+                          onChange={(e) =>
+                            setProfileForm((prev) => ({
+                              ...prev,
+                              phoneNumber: e.target.value,
+                            }))
+                          }
                           disabled={!isEditing}
                         />
                       </div>
                       <div className="space-y-2">
-                        <Label htmlFor="monthlyTarget">Monthly CO₂ Target (tons)</Label>
+                        <Label htmlFor="monthlyTarget">
+                          Monthly CO₂ Target (tons)
+                        </Label>
                         <Input
                           id="monthlyTarget"
                           type="number"
                           step="0.1"
                           value={profileForm.monthlyTarget}
-                          onChange={(e) => setProfileForm(prev => ({ ...prev, monthlyTarget: parseFloat(e.target.value) }))}
+                          onChange={(e) =>
+                            setProfileForm((prev) => ({
+                              ...prev,
+                              monthlyTarget: parseFloat(e.target.value),
+                            }))
+                          }
                           disabled={!isEditing}
                         />
                       </div>
@@ -1061,41 +1281,62 @@ export default function Profile() {
                       <h4 className="font-medium">Personal Goals (%)</h4>
                       <div className="grid md:grid-cols-3 gap-4">
                         <div className="space-y-2">
-                          <Label htmlFor="carbonReduction">Carbon Reduction</Label>
+                          <Label htmlFor="carbonReduction">
+                            Carbon Reduction
+                          </Label>
                           <Input
                             id="carbonReduction"
                             type="number"
                             value={profileForm.goals.carbonReduction}
-                            onChange={(e) => setProfileForm(prev => ({ 
-                              ...prev, 
-                              goals: { ...prev.goals, carbonReduction: parseInt(e.target.value) }
-                            }))}
+                            onChange={(e) =>
+                              setProfileForm((prev) => ({
+                                ...prev,
+                                goals: {
+                                  ...prev.goals,
+                                  carbonReduction: parseInt(e.target.value),
+                                },
+                              }))
+                            }
                             disabled={!isEditing}
                           />
                         </div>
                         <div className="space-y-2">
-                          <Label htmlFor="transportReduction">Transport Reduction</Label>
+                          <Label htmlFor="transportReduction">
+                            Transport Reduction
+                          </Label>
                           <Input
                             id="transportReduction"
                             type="number"
                             value={profileForm.goals.transportReduction}
-                            onChange={(e) => setProfileForm(prev => ({ 
-                              ...prev, 
-                              goals: { ...prev.goals, transportReduction: parseInt(e.target.value) }
-                            }))}
+                            onChange={(e) =>
+                              setProfileForm((prev) => ({
+                                ...prev,
+                                goals: {
+                                  ...prev.goals,
+                                  transportReduction: parseInt(e.target.value),
+                                },
+                              }))
+                            }
                             disabled={!isEditing}
                           />
                         </div>
                         <div className="space-y-2">
-                          <Label htmlFor="renewableEnergy">Renewable Energy</Label>
+                          <Label htmlFor="renewableEnergy">
+                            Renewable Energy
+                          </Label>
                           <Input
                             id="renewableEnergy"
                             type="number"
                             value={profileForm.goals.renewableEnergy}
-                            onChange={(e) => setProfileForm(prev => ({ 
-                              ...prev, 
-                              goals: { ...prev.goals, renewableEnergy: parseInt(e.target.value) }
-                            }))}
+                            onChange={(e) =>
+                              setProfileForm((prev) => ({
+                                ...prev,
+                                goals: {
+                                  ...prev.goals,
+                                  renewableEnergy: parseInt(e.target.value),
+                                },
+                              }))
+                            }
                             disabled={!isEditing}
                           />
                         </div>
@@ -1108,7 +1349,10 @@ export default function Profile() {
                           <Save className="h-4 w-4 mr-2" />
                           {isSaving ? "Saving..." : "Save Changes"}
                         </Button>
-                        <Button variant="outline" onClick={() => setIsEditing(false)}>
+                        <Button
+                          variant="outline"
+                          onClick={() => setIsEditing(false)}
+                        >
                           Cancel
                         </Button>
                       </div>
@@ -1123,15 +1367,22 @@ export default function Profile() {
                       <Shield className="h-5 w-5" />
                       Security
                     </CardTitle>
-                    <CardDescription>Manage your account security settings</CardDescription>
+                    <CardDescription>
+                      Manage your account security settings
+                    </CardDescription>
                   </CardHeader>
                   <CardContent className="space-y-4">
                     <div className="flex items-center justify-between">
                       <div>
                         <p className="font-medium">Password</p>
-                        <p className="text-sm text-muted-foreground">Last changed 2 months ago</p>
+                        <p className="text-sm text-muted-foreground">
+                          Last changed 2 months ago
+                        </p>
                       </div>
-                      <Button variant="outline" onClick={() => setShowPasswordChange(true)}>
+                      <Button
+                        variant="outline"
+                        onClick={() => setShowPasswordChange(true)}
+                      >
                         <Lock className="h-4 w-4 mr-2" />
                         Change Password
                       </Button>
@@ -1140,7 +1391,9 @@ export default function Profile() {
                     <div className="flex items-center justify-between">
                       <div>
                         <p className="font-medium">Two-Factor Authentication</p>
-                        <p className="text-sm text-muted-foreground">Add an extra layer of security</p>
+                        <p className="text-sm text-muted-foreground">
+                          Add an extra layer of security
+                        </p>
                       </div>
                       <Button variant="outline">
                         <Shield className="h-4 w-4 mr-2" />
@@ -1150,10 +1403,17 @@ export default function Profile() {
 
                     <div className="flex items-center justify-between pt-4 border-t">
                       <div>
-                        <p className="font-medium text-destructive">Delete Account</p>
-                        <p className="text-sm text-muted-foreground">Permanently delete your account and all data</p>
+                        <p className="font-medium text-destructive">
+                          Delete Account
+                        </p>
+                        <p className="text-sm text-muted-foreground">
+                          Permanently delete your account and all data
+                        </p>
                       </div>
-                      <Button variant="destructive" onClick={() => setShowDeleteDialog(true)}>
+                      <Button
+                        variant="destructive"
+                        onClick={() => setShowDeleteDialog(true)}
+                      >
                         <Trash2 className="h-4 w-4 mr-2" />
                         Delete Account
                       </Button>
@@ -1170,27 +1430,69 @@ export default function Profile() {
                       <Bell className="h-5 w-5" />
                       Notifications
                     </CardTitle>
-                    <CardDescription>Choose what notifications you'd like to receive</CardDescription>
+                    <CardDescription>
+                      Choose what notifications you'd like to receive
+                    </CardDescription>
                   </CardHeader>
                   <CardContent className="space-y-6">
                     <div className="space-y-4">
                       {[
-                        { key: "emailNotifications", label: "Email Notifications", description: "Receive updates via email" },
-                        { key: "pushNotifications", label: "Push Notifications", description: "Get real-time browser notifications" },
-                        { key: "weeklyReports", label: "Weekly Reports", description: "Summary of your progress each week" },
-                        { key: "achievementAlerts", label: "Achievement Alerts", description: "Notifications for badges and milestones" },
-                        { key: "communityUpdates", label: "Community Updates", description: "Updates from community activities" },
-                        { key: "marketingEmails", label: "Marketing Emails", description: "Product updates and sustainability tips" },
+                        {
+                          key: "emailNotifications",
+                          label: "Email Notifications",
+                          description: "Receive updates via email",
+                        },
+                        {
+                          key: "pushNotifications",
+                          label: "Push Notifications",
+                          description: "Get real-time browser notifications",
+                        },
+                        {
+                          key: "weeklyReports",
+                          label: "Weekly Reports",
+                          description: "Summary of your progress each week",
+                        },
+                        {
+                          key: "achievementAlerts",
+                          label: "Achievement Alerts",
+                          description:
+                            "Notifications for badges and milestones",
+                        },
+                        {
+                          key: "communityUpdates",
+                          label: "Community Updates",
+                          description: "Updates from community activities",
+                        },
+                        {
+                          key: "marketingEmails",
+                          label: "Marketing Emails",
+                          description:
+                            "Product updates and sustainability tips",
+                        },
                       ].map((setting) => (
-                        <div key={setting.key} className="flex items-center justify-between">
+                        <div
+                          key={setting.key}
+                          className="flex items-center justify-between"
+                        >
                           <div>
-                            <p className="font-medium text-sm">{setting.label}</p>
-                            <p className="text-xs text-muted-foreground">{setting.description}</p>
+                            <p className="font-medium text-sm">
+                              {setting.label}
+                            </p>
+                            <p className="text-xs text-muted-foreground">
+                              {setting.description}
+                            </p>
                           </div>
                           <Switch
-                            checked={settings[setting.key as keyof typeof settings] as boolean}
+                            checked={
+                              settings[
+                                setting.key as keyof typeof settings
+                              ] as boolean
+                            }
                             onCheckedChange={(checked) =>
-                              setSettings(prev => ({ ...prev, [setting.key]: checked }))
+                              setSettings((prev) => ({
+                                ...prev,
+                                [setting.key]: checked,
+                              }))
                             }
                           />
                         </div>
@@ -1205,24 +1507,55 @@ export default function Profile() {
                       <Eye className="h-5 w-5" />
                       Privacy
                     </CardTitle>
-                    <CardDescription>Control your privacy and data sharing preferences</CardDescription>
+                    <CardDescription>
+                      Control your privacy and data sharing preferences
+                    </CardDescription>
                   </CardHeader>
                   <CardContent className="space-y-6">
                     <div className="space-y-4">
                       {[
-                        { key: "publicProfile", label: "Public Profile", description: "Allow others to see your profile and achievements" },
-                        { key: "dataSharing", label: "Data Sharing", description: "Share anonymized data for sustainability research" },
-                        { key: "analyticsSharing", label: "Analytics Sharing", description: "Help improve the app with usage analytics" },
+                        {
+                          key: "publicProfile",
+                          label: "Public Profile",
+                          description:
+                            "Allow others to see your profile and achievements",
+                        },
+                        {
+                          key: "dataSharing",
+                          label: "Data Sharing",
+                          description:
+                            "Share anonymized data for sustainability research",
+                        },
+                        {
+                          key: "analyticsSharing",
+                          label: "Analytics Sharing",
+                          description:
+                            "Help improve the app with usage analytics",
+                        },
                       ].map((setting) => (
-                        <div key={setting.key} className="flex items-center justify-between">
+                        <div
+                          key={setting.key}
+                          className="flex items-center justify-between"
+                        >
                           <div>
-                            <p className="font-medium text-sm">{setting.label}</p>
-                            <p className="text-xs text-muted-foreground">{setting.description}</p>
+                            <p className="font-medium text-sm">
+                              {setting.label}
+                            </p>
+                            <p className="text-xs text-muted-foreground">
+                              {setting.description}
+                            </p>
                           </div>
                           <Switch
-                            checked={settings[setting.key as keyof typeof settings] as boolean}
+                            checked={
+                              settings[
+                                setting.key as keyof typeof settings
+                              ] as boolean
+                            }
                             onCheckedChange={(checked) =>
-                              setSettings(prev => ({ ...prev, [setting.key]: checked }))
+                              setSettings((prev) => ({
+                                ...prev,
+                                [setting.key]: checked,
+                              }))
                             }
                           />
                         </div>
@@ -1237,13 +1570,23 @@ export default function Profile() {
                       <Globe className="h-5 w-5" />
                       Preferences
                     </CardTitle>
-                    <CardDescription>Customize your app experience</CardDescription>
+                    <CardDescription>
+                      Customize your app experience
+                    </CardDescription>
                   </CardHeader>
                   <CardContent className="space-y-6">
                     <div className="grid md:grid-cols-2 gap-4">
                       <div className="space-y-2">
                         <Label htmlFor="language">Language</Label>
-                        <Select value={settings.language} onValueChange={(value) => setSettings(prev => ({ ...prev, language: value }))}>
+                        <Select
+                          value={settings.language}
+                          onValueChange={(value) =>
+                            setSettings((prev) => ({
+                              ...prev,
+                              language: value,
+                            }))
+                          }
+                        >
                           <SelectTrigger>
                             <SelectValue />
                           </SelectTrigger>
@@ -1258,28 +1601,51 @@ export default function Profile() {
 
                       <div className="space-y-2">
                         <Label htmlFor="timezone">Timezone</Label>
-                        <Select value={settings.timezone} onValueChange={(value) => setSettings(prev => ({ ...prev, timezone: value }))}>
+                        <Select
+                          value={settings.timezone}
+                          onValueChange={(value) =>
+                            setSettings((prev) => ({
+                              ...prev,
+                              timezone: value,
+                            }))
+                          }
+                        >
                           <SelectTrigger>
                             <SelectValue />
                           </SelectTrigger>
                           <SelectContent>
-                            <SelectItem value="America/Los_Angeles">Pacific Time</SelectItem>
-                            <SelectItem value="America/New_York">Eastern Time</SelectItem>
+                            <SelectItem value="America/Los_Angeles">
+                              Pacific Time
+                            </SelectItem>
+                            <SelectItem value="America/New_York">
+                              Eastern Time
+                            </SelectItem>
                             <SelectItem value="Europe/London">GMT</SelectItem>
-                            <SelectItem value="Europe/Paris">Central European Time</SelectItem>
+                            <SelectItem value="Europe/Paris">
+                              Central European Time
+                            </SelectItem>
                           </SelectContent>
                         </Select>
                       </div>
 
                       <div className="space-y-2">
                         <Label htmlFor="units">Units</Label>
-                        <Select value={settings.units} onValueChange={(value) => setSettings(prev => ({ ...prev, units: value }))}>
+                        <Select
+                          value={settings.units}
+                          onValueChange={(value) =>
+                            setSettings((prev) => ({ ...prev, units: value }))
+                          }
+                        >
                           <SelectTrigger>
                             <SelectValue />
                           </SelectTrigger>
                           <SelectContent>
-                            <SelectItem value="metric">Metric (kg, km)</SelectItem>
-                            <SelectItem value="imperial">Imperial (lbs, miles)</SelectItem>
+                            <SelectItem value="metric">
+                              Metric (kg, km)
+                            </SelectItem>
+                            <SelectItem value="imperial">
+                              Imperial (lbs, miles)
+                            </SelectItem>
                           </SelectContent>
                         </Select>
                       </div>
@@ -1293,15 +1659,23 @@ export default function Profile() {
                       <Download className="h-5 w-5" />
                       Data Export
                     </CardTitle>
-                    <CardDescription>Download your activity data and reports</CardDescription>
+                    <CardDescription>
+                      Download your activity data and reports
+                    </CardDescription>
                   </CardHeader>
                   <CardContent>
                     <div className="flex flex-wrap gap-3">
-                      <Button variant="outline" onClick={() => exportData('json')}>
+                      <Button
+                        variant="outline"
+                        onClick={() => exportData("json")}
+                      >
                         <Download className="h-4 w-4 mr-2" />
                         Export JSON
                       </Button>
-                      <Button variant="outline" onClick={() => exportData('csv')}>
+                      <Button
+                        variant="outline"
+                        onClick={() => exportData("csv")}
+                      >
                         <Download className="h-4 w-4 mr-2" />
                         Export CSV
                       </Button>
@@ -1330,7 +1704,12 @@ export default function Profile() {
                 id="currentPassword"
                 type="password"
                 value={passwordForm.currentPassword}
-                onChange={(e) => setPasswordForm(prev => ({ ...prev, currentPassword: e.target.value }))}
+                onChange={(e) =>
+                  setPasswordForm((prev) => ({
+                    ...prev,
+                    currentPassword: e.target.value,
+                  }))
+                }
               />
             </div>
             <div className="space-y-2">
@@ -1339,7 +1718,12 @@ export default function Profile() {
                 id="newPassword"
                 type="password"
                 value={passwordForm.newPassword}
-                onChange={(e) => setPasswordForm(prev => ({ ...prev, newPassword: e.target.value }))}
+                onChange={(e) =>
+                  setPasswordForm((prev) => ({
+                    ...prev,
+                    newPassword: e.target.value,
+                  }))
+                }
               />
             </div>
             <div className="space-y-2">
@@ -1348,17 +1732,23 @@ export default function Profile() {
                 id="confirmPassword"
                 type="password"
                 value={passwordForm.confirmPassword}
-                onChange={(e) => setPasswordForm(prev => ({ ...prev, confirmPassword: e.target.value }))}
+                onChange={(e) =>
+                  setPasswordForm((prev) => ({
+                    ...prev,
+                    confirmPassword: e.target.value,
+                  }))
+                }
               />
             </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setShowPasswordChange(false)}>
+            <Button
+              variant="outline"
+              onClick={() => setShowPasswordChange(false)}
+            >
               Cancel
             </Button>
-            <Button onClick={handlePasswordChange}>
-              Change Password
-            </Button>
+            <Button onClick={handlePasswordChange}>Change Password</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
@@ -1367,19 +1757,26 @@ export default function Profile() {
       <Dialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle className="text-destructive">Delete Account</DialogTitle>
+            <DialogTitle className="text-destructive">
+              Delete Account
+            </DialogTitle>
             <DialogDescription>
-              This action cannot be undone. This will permanently delete your account and remove all your data from our servers.
+              This action cannot be undone. This will permanently delete your
+              account and remove all your data from our servers.
             </DialogDescription>
           </DialogHeader>
           <Alert className="border-destructive">
             <AlertTriangle className="h-4 w-4" />
             <AlertDescription>
-              All your activities, achievements, and profile data will be permanently lost.
+              All your activities, achievements, and profile data will be
+              permanently lost.
             </AlertDescription>
           </Alert>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setShowDeleteDialog(false)}>
+            <Button
+              variant="outline"
+              onClick={() => setShowDeleteDialog(false)}
+            >
               Cancel
             </Button>
             <Button variant="destructive" onClick={handleDeleteAccount}>

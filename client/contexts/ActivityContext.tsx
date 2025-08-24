@@ -1,6 +1,12 @@
 import React, { createContext, useContext, useReducer, useEffect } from "react";
 import { toast } from "@/components/ui/use-toast";
-import { supabase, apiCall, getSessionToken, setSessionToken, removeSessionToken } from "@/lib/supabase";
+import {
+  supabase,
+  apiCall,
+  getSessionToken,
+  setSessionToken,
+  removeSessionToken,
+} from "@/lib/supabase";
 
 export interface Activity {
   id: string;
@@ -44,7 +50,10 @@ interface ActivityState {
 
 type ActivityAction =
   | { type: "ADD_ACTIVITY"; payload: Activity }
-  | { type: "UPDATE_ACTIVITY"; payload: { id: string; updates: Partial<Activity> } }
+  | {
+      type: "UPDATE_ACTIVITY";
+      payload: { id: string; updates: Partial<Activity> };
+    }
   | { type: "DELETE_ACTIVITY"; payload: string }
   | { type: "SET_ACTIVITIES"; payload: Activity[] }
   | { type: "SET_USER"; payload: User }
@@ -132,10 +141,19 @@ const ActivityContext = createContext<{
   updateActivity: (id: string, updates: Partial<Activity>) => Promise<void>;
   deleteActivity: (id: string) => Promise<void>;
   getTotalFootprint: (period?: "week" | "month" | "year") => number;
-  getFootprintByCategory: () => { name: string; value: number; color: string; }[];
+  getFootprintByCategory: () => {
+    name: string;
+    value: number;
+    color: string;
+  }[];
   getTrendData: () => { name: string; value: number }[];
   login: (credentials: { email: string; password?: string }) => Promise<void>;
-  register: (data: { name: string; email: string; password: string; monthlyTarget?: number }) => Promise<void>;
+  register: (data: {
+    name: string;
+    email: string;
+    password: string;
+    monthlyTarget?: number;
+  }) => Promise<void>;
   loginWithGoogle: () => Promise<void>;
   logout: () => Promise<void>;
   syncActivities: () => Promise<void>;
@@ -229,7 +247,8 @@ export const ActivityProvider: React.FC<{ children: React.ReactNode }> = ({
   };
 
   const addActivity = async (activity: Omit<Activity, "id">) => {
-    const tempId = Date.now().toString() + Math.random().toString(36).substr(2, 9);
+    const tempId =
+      Date.now().toString() + Math.random().toString(36).substr(2, 9);
     const newActivity: Activity = { ...activity, id: tempId };
 
     // Optimistic update
@@ -243,11 +262,11 @@ export const ActivityProvider: React.FC<{ children: React.ReactNode }> = ({
           method: "POST",
           body: JSON.stringify(activity),
         });
-        
+
         // Update with server ID
-        dispatch({ 
-          type: "UPDATE_ACTIVITY", 
-          payload: { id: tempId, updates: { id: response.activity.id } }
+        dispatch({
+          type: "UPDATE_ACTIVITY",
+          payload: { id: tempId, updates: { id: response.activity.id } },
         });
       }
 
@@ -329,7 +348,12 @@ export const ActivityProvider: React.FC<{ children: React.ReactNode }> = ({
     }
   };
 
-  const register = async (data: { name: string; email: string; password: string; monthlyTarget?: number }) => {
+  const register = async (data: {
+    name: string;
+    email: string;
+    password: string;
+    monthlyTarget?: number;
+  }) => {
     dispatch({ type: "SET_LOADING", payload: true });
 
     try {
@@ -364,10 +388,10 @@ export const ActivityProvider: React.FC<{ children: React.ReactNode }> = ({
     try {
       // Simulate Google OAuth flow
       const { data, error } = await supabase.auth.signInWithOAuth({
-        provider: 'google',
+        provider: "google",
         options: {
-          redirectTo: `${window.location.origin}/auth/callback`
-        }
+          redirectTo: `${window.location.origin}/auth/callback`,
+        },
       });
 
       if (error) throw error;

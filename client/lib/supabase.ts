@@ -1,7 +1,8 @@
 import { createClient } from "@supabase/supabase-js";
 
 const supabaseUrl = "https://xmuvtxtspyqwvelvuusr.supabase.co";
-const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhtdXZ0eHRzcHlxd3ZlbHZ1dXNyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTU4ODI4MjcsImV4cCI6MjA3MTQ1ODgyN30.-ZC9RB2i7kHN-d-nL7uQOG-hT7khyxMrIER8Tv9x0d0";
+const supabaseKey =
+  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhtdXZ0eHRzcHlxd3ZlbHZ1dXNyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTU4ODI4MjcsImV4cCI6MjA3MTQ1ODgyN30.-ZC9RB2i7kHN-d-nL7uQOG-hT7khyxMrIER8Tv9x0d0";
 
 export const supabase = createClient(supabaseUrl, supabaseKey);
 
@@ -60,18 +61,19 @@ export interface CommunityPost {
 }
 
 // Auth helpers
-export const getSessionToken = () => localStorage.getItem("carbonmeter_session_token");
+export const getSessionToken = () =>
+  localStorage.getItem("carbonmeter_session_token");
 
-export const setSessionToken = (token: string) => 
+export const setSessionToken = (token: string) =>
   localStorage.setItem("carbonmeter_session_token", token);
 
-export const removeSessionToken = () => 
+export const removeSessionToken = () =>
   localStorage.removeItem("carbonmeter_session_token");
 
 // API helpers with auth
 export const apiCall = async (endpoint: string, options: RequestInit = {}) => {
   const token = getSessionToken();
-  
+
   const response = await fetch(`/api${endpoint}`, {
     ...options,
     headers: {

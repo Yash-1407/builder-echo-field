@@ -120,7 +120,10 @@ const realtimeReducer = (
     case "ADD_COMMUNITY_ACTIVITY":
       return {
         ...state,
-        communityActivity: [action.payload, ...state.communityActivity.slice(0, 19)],
+        communityActivity: [
+          action.payload,
+          ...state.communityActivity.slice(0, 19),
+        ],
       };
     default:
       return state;
@@ -168,13 +171,15 @@ export const RealtimeProvider: React.FC<{ children: React.ReactNode }> = ({
         dispatch({ type: "SET_CONNECTION_STATUS", payload: true });
 
         // Activity updates channel
-        activityChannel = supabase.channel(`activities:${userId}`)
-          .on('postgres_changes', 
-            { 
-              event: 'INSERT', 
-              schema: 'public', 
-              table: 'activities',
-              filter: `user_id=eq.${userId}`
+        activityChannel = supabase
+          .channel(`activities:${userId}`)
+          .on(
+            "postgres_changes",
+            {
+              event: "INSERT",
+              schema: "public",
+              table: "activities",
+              filter: `user_id=eq.${userId}`,
             },
             (payload) => {
               const liveUpdate: LiveUpdate = {
@@ -183,38 +188,41 @@ export const RealtimeProvider: React.FC<{ children: React.ReactNode }> = ({
                 timestamp: new Date().toISOString(),
               };
               dispatch({ type: "ADD_LIVE_UPDATE", payload: liveUpdate });
-              
+
               addNotification({
                 type: "success",
                 title: "Activity Recorded!",
                 message: `${payload.new.description} - ${payload.new.impact} ${payload.new.unit}`,
               });
-            }
+            },
           )
           .subscribe();
 
         // User presence channel
-        presenceChannel = supabase.channel('user-presence')
-          .on('presence', { event: 'sync' }, () => {
+        presenceChannel = supabase
+          .channel("user-presence")
+          .on("presence", { event: "sync" }, () => {
             const state = presenceChannel.presenceState();
             const userCount = Object.keys(state).length;
             dispatch({ type: "SET_ONLINE_USERS", payload: userCount });
           })
-          .on('presence', { event: 'join' }, ({ key, newPresences }) => {
-            console.log('User joined:', key, newPresences);
+          .on("presence", { event: "join" }, ({ key, newPresences }) => {
+            console.log("User joined:", key, newPresences);
           })
-          .on('presence', { event: 'leave' }, ({ key, leftPresences }) => {
-            console.log('User left:', key, leftPresences);
+          .on("presence", { event: "leave" }, ({ key, leftPresences }) => {
+            console.log("User left:", key, leftPresences);
           })
           .subscribe();
 
         // Community activity channel
-        communityChannel = supabase.channel('community-activity')
-          .on('postgres_changes',
+        communityChannel = supabase
+          .channel("community-activity")
+          .on(
+            "postgres_changes",
             {
-              event: 'INSERT',
-              schema: 'public',
-              table: 'community_posts'
+              event: "INSERT",
+              schema: "public",
+              table: "community_posts",
             },
             (payload) => {
               const liveUpdate: LiveUpdate = {
@@ -223,9 +231,9 @@ export const RealtimeProvider: React.FC<{ children: React.ReactNode }> = ({
                 timestamp: new Date().toISOString(),
               };
               dispatch({ type: "ADD_COMMUNITY_ACTIVITY", payload: liveUpdate });
-            }
+            },
           )
-          .on('broadcast', { event: 'challenge_update' }, (payload) => {
+          .on("broadcast", { event: "challenge_update" }, (payload) => {
             const liveUpdate: LiveUpdate = {
               type: "challenge_update",
               data: payload.payload,
@@ -243,14 +251,14 @@ export const RealtimeProvider: React.FC<{ children: React.ReactNode }> = ({
           addNotification({
             type: "info",
             title: "🌱 Welcome to CarbonMeter!",
-            message: "You're now connected to real-time updates. Start logging activities to see live progress!",
+            message:
+              "You're now connected to real-time updates. Start logging activities to see live progress!",
             action: {
               label: "Start Tracking",
               href: "/activity",
             },
           });
         }, 2000);
-
       } catch (error) {
         console.error("Realtime connection error:", error);
         dispatch({ type: "SET_CONNECTION_STATUS", payload: false });
@@ -297,21 +305,21 @@ export const RealtimeProvider: React.FC<{ children: React.ReactNode }> = ({
   };
 
   const broadcastActivity = (activity: any) => {
-    supabase.channel('community-activity').send({
-      type: 'broadcast',
-      event: 'user_activity',
+    supabase.channel("community-activity").send({
+      type: "broadcast",
+      event: "user_activity",
       payload: {
         user_id: userId,
         activity,
         timestamp: new Date().toISOString(),
-      }
+      },
     });
   };
 
   const joinUserPresence = () => {
     if (!userId) return;
-    
-    const presenceChannel = supabase.channel('user-presence');
+
+    const presenceChannel = supabase.channel("user-presence");
     presenceChannel.track({
       user_id: userId,
       online_at: new Date().toISOString(),
@@ -319,7 +327,7 @@ export const RealtimeProvider: React.FC<{ children: React.ReactNode }> = ({
   };
 
   const leaveUserPresence = () => {
-    const presenceChannel = supabase.channel('user-presence');
+    const presenceChannel = supabase.channel("user-presence");
     presenceChannel.untrack();
   };
 

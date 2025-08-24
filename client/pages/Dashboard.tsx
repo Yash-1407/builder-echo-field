@@ -1,6 +1,12 @@
 import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
@@ -23,16 +29,31 @@ import {
   CheckCircle,
   Plus,
 } from "lucide-react";
-import { LineChart, Line, PieChart, Pie, Cell, ResponsiveContainer, XAxis, YAxis, Tooltip, BarChart, Bar } from "recharts";
+import {
+  LineChart,
+  Line,
+  PieChart,
+  Pie,
+  Cell,
+  ResponsiveContainer,
+  XAxis,
+  YAxis,
+  Tooltip,
+  BarChart,
+  Bar,
+} from "recharts";
 import StatsCard from "@/components/StatsCard";
 import RecentActivities from "@/components/RecentActivities";
 import QuickActions from "@/components/QuickActions";
 import { toast } from "@/components/ui/use-toast";
 
 const Dashboard = () => {
-  const { state, getTotalFootprint, getFootprintByCategory, getTrendData } = useActivity();
+  const { state, getTotalFootprint, getFootprintByCategory, getTrendData } =
+    useActivity();
   const { state: realtimeState, addNotification } = useRealtime();
-  const [timeRange, setTimeRange] = useState<"week" | "month" | "year">("month");
+  const [timeRange, setTimeRange] = useState<"week" | "month" | "year">(
+    "month",
+  );
   const [showCelebration, setShowCelebration] = useState(false);
 
   const monthlyTarget = state.user?.monthlyTarget || 4.5;
@@ -48,7 +69,8 @@ const Dashboard = () => {
       addNotification({
         type: "achievement",
         title: "🎉 Daily Goal Achieved!",
-        message: "Congratulations! You've reached your daily sustainability goal!",
+        message:
+          "Congratulations! You've reached your daily sustainability goal!",
         action: {
           label: "View Progress",
           href: "/analytics",
@@ -66,11 +88,21 @@ const Dashboard = () => {
 
   // Calculate insights
   const insights = {
-    weeklyChange: trendData.length >= 2 
-      ? ((trendData[trendData.length - 1].value - trendData[trendData.length - 2].value) / trendData[trendData.length - 2].value) * 100 
-      : 0,
-    bestCategory: categoryData.reduce((min, cat) => cat.value < min.value ? cat : min, categoryData[0]),
-    worstCategory: categoryData.reduce((max, cat) => cat.value > max.value ? cat : max, categoryData[0]),
+    weeklyChange:
+      trendData.length >= 2
+        ? ((trendData[trendData.length - 1].value -
+            trendData[trendData.length - 2].value) /
+            trendData[trendData.length - 2].value) *
+          100
+        : 0,
+    bestCategory: categoryData.reduce(
+      (min, cat) => (cat.value < min.value ? cat : min),
+      categoryData[0],
+    ),
+    worstCategory: categoryData.reduce(
+      (max, cat) => (cat.value > max.value ? cat : max),
+      categoryData[0],
+    ),
     totalActivities: state.activities.length,
     reductionFromTarget: Math.max(0, monthlyTarget - currentFootprint),
   };
@@ -119,7 +151,7 @@ const Dashboard = () => {
         className="flex flex-col md:flex-row md:items-center md:justify-between"
       >
         <div>
-          <motion.h1 
+          <motion.h1
             className="text-3xl font-bold tracking-tight flex items-center gap-3"
             initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
@@ -133,7 +165,7 @@ const Dashboard = () => {
             </motion.div>
             Welcome back, {state.user?.name || "User"}! 🌱
           </motion.h1>
-          <motion.p 
+          <motion.p
             className="text-muted-foreground mt-1"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -151,9 +183,11 @@ const Dashboard = () => {
           className="flex items-center gap-4 mt-4 md:mt-0"
         >
           <div className="flex items-center gap-2">
-            <div className={`w-2 h-2 rounded-full ${realtimeState.isConnected ? 'bg-green-500' : 'bg-red-500'} animate-pulse`} />
+            <div
+              className={`w-2 h-2 rounded-full ${realtimeState.isConnected ? "bg-green-500" : "bg-red-500"} animate-pulse`}
+            />
             <span className="text-sm text-muted-foreground">
-              {realtimeState.isConnected ? 'Live' : 'Offline'}
+              {realtimeState.isConnected ? "Live" : "Offline"}
             </span>
           </div>
           <Badge variant="secondary" className="animate-pulse">
@@ -180,7 +214,9 @@ const Dashboard = () => {
               </motion.div>
               <div>
                 <h3 className="text-xl font-bold">🎉 Daily Goal Achieved!</h3>
-                <p className="opacity-90">You're making a real difference for our planet!</p>
+                <p className="opacity-90">
+                  You're making a real difference for our planet!
+                </p>
               </div>
               <motion.div
                 animate={{ scale: [1, 1.2, 1] }}
@@ -237,14 +273,21 @@ const Dashboard = () => {
                 Monthly Target Progress
               </CardTitle>
               <CardDescription>
-                Your carbon footprint vs. monthly target of {monthlyTarget} kg CO₂
+                Your carbon footprint vs. monthly target of {monthlyTarget} kg
+                CO₂
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="space-y-2">
                 <div className="flex justify-between text-sm">
                   <span>Current: {currentFootprint.toFixed(1)} kg CO₂</span>
-                  <span className={percentageOfTarget <= 100 ? "text-green-600" : "text-orange-600"}>
+                  <span
+                    className={
+                      percentageOfTarget <= 100
+                        ? "text-green-600"
+                        : "text-orange-600"
+                    }
+                  >
                     {percentageOfTarget.toFixed(0)}% of target
                   </span>
                 </div>
@@ -258,14 +301,16 @@ const Dashboard = () => {
                 <div className="flex items-center gap-2 text-green-600 bg-green-50 p-3 rounded-lg">
                   <CheckCircle className="h-5 w-5" />
                   <span className="text-sm font-medium">
-                    Great job! You're {insights.reductionFromTarget.toFixed(1)} kg below your target.
+                    Great job! You're {insights.reductionFromTarget.toFixed(1)}{" "}
+                    kg below your target.
                   </span>
                 </div>
               ) : (
                 <div className="flex items-center gap-2 text-orange-600 bg-orange-50 p-3 rounded-lg">
                   <TrendingUp className="h-5 w-5" />
                   <span className="text-sm font-medium">
-                    You're {(currentFootprint - monthlyTarget).toFixed(1)} kg over your target.
+                    You're {(currentFootprint - monthlyTarget).toFixed(1)} kg
+                    over your target.
                   </span>
                 </div>
               )}
@@ -273,10 +318,14 @@ const Dashboard = () => {
               {/* Daily Progress */}
               <div className="pt-4 border-t">
                 <div className="flex items-center justify-between mb-2">
-                  <span className="text-sm font-medium">Daily Goal Progress</span>
+                  <span className="text-sm font-medium">
+                    Daily Goal Progress
+                  </span>
                   <div className="flex items-center gap-1">
                     <Flame className="h-4 w-4 text-orange-500" />
-                    <span className="text-sm">{realtimeState.achievementStreak} day streak</span>
+                    <span className="text-sm">
+                      {realtimeState.achievementStreak} day streak
+                    </span>
                   </div>
                 </div>
                 <Progress
@@ -325,9 +374,7 @@ const Dashboard = () => {
                 <Globe className="h-5 w-5 text-carbon-600" />
                 Impact Breakdown
               </CardTitle>
-              <CardDescription>
-                Your emissions by category
-              </CardDescription>
+              <CardDescription>Your emissions by category</CardDescription>
             </CardHeader>
             <CardContent>
               <div className="h-48">
@@ -346,7 +393,9 @@ const Dashboard = () => {
                         <Cell key={`cell-${index}`} fill={entry.color} />
                       ))}
                     </Pie>
-                    <Tooltip formatter={(value) => [`${value} kg CO₂`, "Impact"]} />
+                    <Tooltip
+                      formatter={(value) => [`${value} kg CO₂`, "Impact"]}
+                    />
                   </PieChart>
                 </ResponsiveContainer>
               </div>
@@ -388,7 +437,9 @@ const Dashboard = () => {
                   <LineChart data={trendData}>
                     <XAxis dataKey="name" />
                     <YAxis />
-                    <Tooltip formatter={(value) => [`${value} kg CO₂`, "Emissions"]} />
+                    <Tooltip
+                      formatter={(value) => [`${value} kg CO₂`, "Emissions"]}
+                    />
                     <Line
                       type="monotone"
                       dataKey="value"
@@ -403,7 +454,9 @@ const Dashboard = () => {
                 <div className="flex items-center gap-1 text-green-600">
                   <TrendingDown className="h-4 w-4" />
                   <span>
-                    {insights.weeklyChange < 0 ? "↓" : "↑"} {Math.abs(insights.weeklyChange).toFixed(1)}% from last month
+                    {insights.weeklyChange < 0 ? "↓" : "↑"}{" "}
+                    {Math.abs(insights.weeklyChange).toFixed(1)}% from last
+                    month
                   </span>
                 </div>
               </div>
@@ -450,10 +503,9 @@ const Dashboard = () => {
           </CardHeader>
           <CardContent>
             <p className="text-green-700">
-              {insights.bestCategory ? 
-                `Great job! Your ${insights.bestCategory.name.toLowerCase()} activities have the lowest impact (${insights.bestCategory.value} kg CO₂).` :
-                "Keep logging activities to see personalized insights!"
-              }
+              {insights.bestCategory
+                ? `Great job! Your ${insights.bestCategory.name.toLowerCase()} activities have the lowest impact (${insights.bestCategory.value} kg CO₂).`
+                : "Keep logging activities to see personalized insights!"}
             </p>
           </CardContent>
         </Card>
@@ -467,10 +519,9 @@ const Dashboard = () => {
           </CardHeader>
           <CardContent>
             <p className="text-orange-700">
-              {insights.worstCategory ? 
-                `Consider reducing ${insights.worstCategory.name.toLowerCase()} activities - they account for ${insights.worstCategory.value} kg CO₂.` :
-                "Your impact data will help identify improvement areas."
-              }
+              {insights.worstCategory
+                ? `Consider reducing ${insights.worstCategory.name.toLowerCase()} activities - they account for ${insights.worstCategory.value} kg CO₂.`
+                : "Your impact data will help identify improvement areas."}
             </p>
           </CardContent>
         </Card>
@@ -492,7 +543,9 @@ const Dashboard = () => {
           <CardContent>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
               <div className="text-center">
-                <div className="text-2xl font-bold">{realtimeState.onlineUsers + 1247}</div>
+                <div className="text-2xl font-bold">
+                  {realtimeState.onlineUsers + 1247}
+                </div>
                 <div className="text-sm opacity-90">Active Users</div>
               </div>
               <div className="text-center">

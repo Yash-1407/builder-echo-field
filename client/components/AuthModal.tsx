@@ -11,7 +11,14 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useActivity } from "@/contexts/ActivityContext";
-import { Leaf, Mail, Lock, User as UserIcon, Target, Loader2 } from "lucide-react";
+import {
+  Leaf,
+  Mail,
+  Lock,
+  User as UserIcon,
+  Target,
+  Loader2,
+} from "lucide-react";
 import { motion } from "framer-motion";
 import { toast } from "@/components/ui/use-toast";
 
@@ -70,7 +77,7 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
         email: loginForm.email,
         password: loginForm.password,
       });
-      
+
       onClose();
       setLoginForm({ email: "", password: "" });
     } catch (error: any) {
@@ -121,7 +128,7 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
 
   const handleGoogleLogin = async () => {
     clearErrors();
-    
+
     try {
       await loginWithGoogle();
       // Note: Google OAuth will redirect, so the modal close happens in callback
@@ -132,13 +139,13 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
 
   const handleDemoLogin = async () => {
     clearErrors();
-    
+
     try {
       await login({
         email: "demo@carbonmeter.com",
         password: "demo123",
       });
-      
+
       onClose();
     } catch (error: any) {
       // If demo user doesn't exist, create it
@@ -191,7 +198,10 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
           <TabsContent value="login" className="space-y-4">
             <form onSubmit={handleLogin} className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="login-email" className="flex items-center gap-2">
+                <Label
+                  htmlFor="login-email"
+                  className="flex items-center gap-2"
+                >
                   <Mail className="h-4 w-4" />
                   Email
                 </Label>
@@ -208,7 +218,10 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="login-password" className="flex items-center gap-2">
+                <Label
+                  htmlFor="login-password"
+                  className="flex items-center gap-2"
+                >
                   <Lock className="h-4 w-4" />
                   Password
                 </Label>
@@ -229,9 +242,9 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
               </div>
 
               <div className="space-y-3">
-                <Button 
-                  type="submit" 
-                  disabled={state.isLoading} 
+                <Button
+                  type="submit"
+                  disabled={state.isLoading}
                   className="w-full"
                 >
                   {state.isLoading ? (
@@ -292,7 +305,10 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
           <TabsContent value="signup" className="space-y-4">
             <form onSubmit={handleSignup} className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="signup-name" className="flex items-center gap-2">
+                <Label
+                  htmlFor="signup-name"
+                  className="flex items-center gap-2"
+                >
                   <UserIcon className="h-4 w-4" />
                   Full Name *
                 </Label>
@@ -309,7 +325,10 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="signup-email" className="flex items-center gap-2">
+                <Label
+                  htmlFor="signup-email"
+                  className="flex items-center gap-2"
+                >
                   <Mail className="h-4 w-4" />
                   Email *
                 </Label>
@@ -330,7 +349,10 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="signup-password" className="flex items-center gap-2">
+                  <Label
+                    htmlFor="signup-password"
+                    className="flex items-center gap-2"
+                  >
                     <Lock className="h-4 w-4" />
                     Password *
                   </Label>
@@ -349,7 +371,9 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
                     disabled={state.isLoading}
                   />
                   {errors.password && (
-                    <p className="text-sm text-destructive">{errors.password}</p>
+                    <p className="text-sm text-destructive">
+                      {errors.password}
+                    </p>
                   )}
                 </div>
                 <div className="space-y-2">
@@ -369,12 +393,17 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
                     disabled={state.isLoading}
                   />
                   {errors.confirmPassword && (
-                    <p className="text-sm text-destructive">{errors.confirmPassword}</p>
+                    <p className="text-sm text-destructive">
+                      {errors.confirmPassword}
+                    </p>
                   )}
                 </div>
               </div>
               <div className="space-y-2">
-                <Label htmlFor="monthly-target" className="flex items-center gap-2">
+                <Label
+                  htmlFor="monthly-target"
+                  className="flex items-center gap-2"
+                >
                   <Target className="h-4 w-4" />
                   Monthly CO₂ Target (tons)
                 </Label>
@@ -400,9 +429,9 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
               </div>
 
               <div className="space-y-3">
-                <Button 
-                  type="submit" 
-                  disabled={state.isLoading} 
+                <Button
+                  type="submit"
+                  disabled={state.isLoading}
                   className="w-full"
                 >
                   {state.isLoading ? (

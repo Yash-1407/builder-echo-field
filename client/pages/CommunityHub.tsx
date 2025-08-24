@@ -1,7 +1,13 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -9,8 +15,22 @@ import { Progress } from "@/components/ui/progress";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 import { useActivity } from "@/contexts/ActivityContext";
 import { useRealtime } from "@/contexts/RealtimeContext";
 import { apiCall } from "@/lib/supabase";
@@ -100,7 +120,7 @@ export default function CommunityHub() {
   const [challenges, setChallenges] = useState<Challenge[]>([]);
   const [posts, setPosts] = useState<CommunityPost[]>([]);
   const [leaderboard, setLeaderboard] = useState<LeaderboardEntry[]>([]);
-  
+
   // Post creation
   const [showCreatePost, setShowCreatePost] = useState(false);
   const [newPost, setNewPost] = useState({
@@ -123,7 +143,7 @@ export default function CommunityHub() {
         if (activeTab === "community") {
           loadPosts();
         }
-        
+
         addNotification({
           type: "info",
           title: "New Community Activity! 👥",
@@ -173,13 +193,16 @@ export default function CommunityHub() {
         {
           id: "1",
           title: "Zero Car Week",
-          description: "Go a full week without using a car. Use walking, cycling, or public transport instead.",
+          description:
+            "Go a full week without using a car. Use walking, cycling, or public transport instead.",
           type: "individual",
           category: "transport",
           target: 7,
           unit: "days",
           start_date: new Date().toISOString(),
-          end_date: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
+          end_date: new Date(
+            Date.now() + 7 * 24 * 60 * 60 * 1000,
+          ).toISOString(),
           participants_count: 1247,
           user_progress: 42,
           is_joined: false,
@@ -189,13 +212,16 @@ export default function CommunityHub() {
         {
           id: "2",
           title: "Plant-Based Month",
-          description: "Commit to a plant-based diet for 30 days and track your carbon footprint reduction.",
+          description:
+            "Commit to a plant-based diet for 30 days and track your carbon footprint reduction.",
           type: "global",
           category: "food",
           target: 30,
           unit: "days",
           start_date: new Date().toISOString(),
-          end_date: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
+          end_date: new Date(
+            Date.now() + 30 * 24 * 60 * 60 * 1000,
+          ).toISOString(),
           participants_count: 3421,
           user_progress: 67,
           is_joined: true,
@@ -211,7 +237,9 @@ export default function CommunityHub() {
           target: 20,
           unit: "% reduction",
           start_date: new Date().toISOString(),
-          end_date: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
+          end_date: new Date(
+            Date.now() + 30 * 24 * 60 * 60 * 1000,
+          ).toISOString(),
           participants_count: 856,
           user_progress: 15,
           is_joined: false,
@@ -232,7 +260,8 @@ export default function CommunityHub() {
         {
           id: "1",
           title: "Zero Waste Week Success!",
-          content: "Just completed my first zero-waste week! Amazing how much plastic we use without thinking about it. Small changes, big impact! 🌍",
+          content:
+            "Just completed my first zero-waste week! Amazing how much plastic we use without thinking about it. Small changes, big impact! 🌍",
           type: "achievement",
           likes: 34,
           comments_count: 12,
@@ -243,7 +272,8 @@ export default function CommunityHub() {
         {
           id: "2",
           title: "Cycling to Work Benefits",
-          content: "Switched to cycling for my daily commute. Not only am I reducing my carbon footprint by 3.2 kg CO₂ per day, but I feel so much healthier! Who else is part of the bike-to-work movement?",
+          content:
+            "Switched to cycling for my daily commute. Not only am I reducing my carbon footprint by 3.2 kg CO₂ per day, but I feel so much healthier! Who else is part of the bike-to-work movement?",
           type: "tip",
           likes: 67,
           comments_count: 23,
@@ -254,7 +284,8 @@ export default function CommunityHub() {
         {
           id: "3",
           title: "Home Vegetable Garden",
-          content: "My vegetable garden is thriving! Growing your own food is incredibly rewarding and sustainable. Here's what I harvested this week 🥬🍅",
+          content:
+            "My vegetable garden is thriving! Growing your own food is incredibly rewarding and sustainable. Here's what I harvested this week 🥬🍅",
           type: "tip",
           likes: 45,
           comments_count: 18,
@@ -348,15 +379,17 @@ export default function CommunityHub() {
         method: "POST",
       });
 
-      setPosts(posts.map(post => 
-        post.id === postId 
-          ? { 
-              ...post, 
-              likes: post.is_liked ? post.likes - 1 : post.likes + 1,
-              is_liked: !post.is_liked 
-            }
-          : post
-      ));
+      setPosts(
+        posts.map((post) =>
+          post.id === postId
+            ? {
+                ...post,
+                likes: post.is_liked ? post.likes - 1 : post.likes + 1,
+                is_liked: !post.is_liked,
+              }
+            : post,
+        ),
+      );
     } catch (error) {
       toast({
         title: "Error",
@@ -372,15 +405,17 @@ export default function CommunityHub() {
         method: "POST",
       });
 
-      setChallenges(challenges.map(challenge => 
-        challenge.id === challengeId 
-          ? { 
-              ...challenge, 
-              is_joined: true,
-              participants_count: challenge.participants_count + 1
-            }
-          : challenge
-      ));
+      setChallenges(
+        challenges.map((challenge) =>
+          challenge.id === challengeId
+            ? {
+                ...challenge,
+                is_joined: true,
+                participants_count: challenge.participants_count + 1,
+              }
+            : challenge,
+        ),
+      );
 
       toast({
         title: "Challenge Joined! 🎯",
@@ -399,7 +434,7 @@ export default function CommunityHub() {
     setRefreshing(true);
     await loadData();
     setRefreshing(false);
-    
+
     toast({
       title: "Refreshed! ✨",
       description: "Community data has been updated.",
@@ -417,31 +452,46 @@ export default function CommunityHub() {
 
   const getDifficultyColor = (difficulty: string) => {
     switch (difficulty) {
-      case "easy": return "text-green-600 bg-green-50 border-green-200";
-      case "medium": return "text-yellow-600 bg-yellow-50 border-yellow-200";
-      case "hard": return "text-red-600 bg-red-50 border-red-200";
-      default: return "text-gray-600 bg-gray-50 border-gray-200";
+      case "easy":
+        return "text-green-600 bg-green-50 border-green-200";
+      case "medium":
+        return "text-yellow-600 bg-yellow-50 border-yellow-200";
+      case "hard":
+        return "text-red-600 bg-red-50 border-red-200";
+      default:
+        return "text-gray-600 bg-gray-50 border-gray-200";
     }
   };
 
   const getCategoryIcon = (category: string) => {
     switch (category) {
-      case "transport": return "🚲";
-      case "energy": return "⚡";
-      case "food": return "🥬";
-      case "waste": return "♻️";
-      case "lifestyle": return "🌱";
-      default: return "🌍";
+      case "transport":
+        return "🚲";
+      case "energy":
+        return "⚡";
+      case "food":
+        return "🥬";
+      case "waste":
+        return "♻️";
+      case "lifestyle":
+        return "🌱";
+      default:
+        return "🌍";
     }
   };
 
   const getPostTypeIcon = (type: string) => {
     switch (type) {
-      case "achievement": return <Award className="h-4 w-4 text-yellow-600" />;
-      case "tip": return <Leaf className="h-4 w-4 text-green-600" />;
-      case "question": return <MessageCircle className="h-4 w-4 text-blue-600" />;
-      case "challenge": return <Target className="h-4 w-4 text-purple-600" />;
-      default: return <MessageCircle className="h-4 w-4 text-gray-600" />;
+      case "achievement":
+        return <Award className="h-4 w-4 text-yellow-600" />;
+      case "tip":
+        return <Leaf className="h-4 w-4 text-green-600" />;
+      case "question":
+        return <MessageCircle className="h-4 w-4 text-blue-600" />;
+      case "challenge":
+        return <Target className="h-4 w-4 text-purple-600" />;
+      default:
+        return <MessageCircle className="h-4 w-4 text-gray-600" />;
     }
   };
 
@@ -464,19 +514,28 @@ export default function CommunityHub() {
             Community Hub
           </h1>
           <p className="text-muted-foreground mt-1">
-            Connect with eco-warriors worldwide and join sustainability challenges
+            Connect with eco-warriors worldwide and join sustainability
+            challenges
           </p>
         </div>
 
         <div className="flex items-center gap-3">
           <div className="flex items-center gap-2">
-            <div className={`w-2 h-2 rounded-full ${realtimeState.isConnected ? 'bg-green-500' : 'bg-red-500'} animate-pulse`} />
+            <div
+              className={`w-2 h-2 rounded-full ${realtimeState.isConnected ? "bg-green-500" : "bg-red-500"} animate-pulse`}
+            />
             <span className="text-sm text-muted-foreground">
               {realtimeState.onlineUsers} online
             </span>
           </div>
-          <Button variant="outline" onClick={handleRefresh} disabled={refreshing}>
-            <RefreshCw className={`h-4 w-4 ${refreshing ? 'animate-spin' : ''}`} />
+          <Button
+            variant="outline"
+            onClick={handleRefresh}
+            disabled={refreshing}
+          >
+            <RefreshCw
+              className={`h-4 w-4 ${refreshing ? "animate-spin" : ""}`}
+            />
             Refresh
           </Button>
         </div>
@@ -493,8 +552,12 @@ export default function CommunityHub() {
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-muted-foreground">Active Members</p>
-                <p className="text-2xl font-bold">{(realtimeState.onlineUsers + 50143).toLocaleString()}</p>
+                <p className="text-sm font-medium text-muted-foreground">
+                  Active Members
+                </p>
+                <p className="text-2xl font-bold">
+                  {(realtimeState.onlineUsers + 50143).toLocaleString()}
+                </p>
               </div>
               <Users className="h-8 w-8 text-blue-600" />
             </div>
@@ -509,7 +572,9 @@ export default function CommunityHub() {
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-muted-foreground">Active Challenges</p>
+                <p className="text-sm font-medium text-muted-foreground">
+                  Active Challenges
+                </p>
                 <p className="text-2xl font-bold">{challenges.length + 1231}</p>
               </div>
               <Target className="h-8 w-8 text-green-600" />
@@ -525,7 +590,9 @@ export default function CommunityHub() {
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-muted-foreground">CO₂ Saved</p>
+                <p className="text-sm font-medium text-muted-foreground">
+                  CO₂ Saved
+                </p>
                 <p className="text-2xl font-bold">2.5M kg</p>
               </div>
               <Leaf className="h-8 w-8 text-eco-600" />
@@ -541,21 +608,27 @@ export default function CommunityHub() {
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-muted-foreground">Your Eco Score</p>
+                <p className="text-sm font-medium text-muted-foreground">
+                  Your Eco Score
+                </p>
                 <p className="text-2xl font-bold">847</p>
               </div>
               <Trophy className="h-8 w-8 text-yellow-600" />
             </div>
             <div className="mt-2 flex items-center gap-1 text-xs text-green-600">
-              <TrendingUp className="h-3 w-3" />
-              +{realtimeState.achievementStreak} streak
+              <TrendingUp className="h-3 w-3" />+
+              {realtimeState.achievementStreak} streak
             </div>
           </CardContent>
         </Card>
       </motion.div>
 
       {/* Main Content */}
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
+      <Tabs
+        value={activeTab}
+        onValueChange={setActiveTab}
+        className="space-y-6"
+      >
         <TabsList className="grid w-full grid-cols-4">
           <TabsTrigger value="challenges">Challenges</TabsTrigger>
           <TabsTrigger value="community">Community</TabsTrigger>
@@ -595,7 +668,10 @@ export default function CommunityHub() {
                   </div>
                   <div className="md:w-48">
                     <Label>Category</Label>
-                    <Select value={selectedCategory} onValueChange={setSelectedCategory}>
+                    <Select
+                      value={selectedCategory}
+                      onValueChange={setSelectedCategory}
+                    >
                       <SelectTrigger>
                         <SelectValue />
                       </SelectTrigger>
@@ -616,95 +692,123 @@ export default function CommunityHub() {
             {/* Challenges Grid */}
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
               <AnimatePresence mode="wait">
-                {isLoading ? (
-                  Array.from({ length: 6 }).map((_, i) => (
-                    <Card key={i} className="h-80">
-                      <CardContent className="p-6">
-                        <div className="animate-pulse space-y-4">
-                          <div className="h-4 bg-gray-200 rounded w-3/4"></div>
-                          <div className="h-3 bg-gray-200 rounded w-full"></div>
-                          <div className="h-3 bg-gray-200 rounded w-2/3"></div>
-                          <div className="h-2 bg-gray-200 rounded w-full"></div>
-                          <div className="h-8 bg-gray-200 rounded w-1/2"></div>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  ))
-                ) : (
-                  filteredChallenges.map((challenge, index) => (
-                    <motion.div
-                      key={challenge.id}
-                      initial={{ opacity: 0, y: 20 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      exit={{ opacity: 0, y: -20 }}
-                      transition={{ duration: 0.3, delay: index * 0.1 }}
-                    >
-                      <Card className={`h-full ${challenge.is_joined ? "ring-2 ring-primary" : ""}`}>
-                        <CardHeader>
-                          <div className="flex items-center justify-between">
-                            <Badge className={getDifficultyColor(challenge.difficulty)}>
-                              {challenge.difficulty}
-                            </Badge>
-                            <span className="text-2xl">
-                              {getCategoryIcon(challenge.category)}
-                            </span>
-                          </div>
-                          <CardTitle className="text-lg">{challenge.title}</CardTitle>
-                          <CardDescription className="line-clamp-2">
-                            {challenge.description}
-                          </CardDescription>
-                        </CardHeader>
-                        <CardContent className="space-y-4">
-                          {challenge.user_progress !== undefined && (
-                            <>
-                              <div className="flex items-center justify-between text-sm">
-                                <span className="text-muted-foreground">Your Progress</span>
-                                <span className="font-medium">{challenge.user_progress}%</span>
-                              </div>
-                              <Progress value={challenge.user_progress} className="h-2" />
-                            </>
-                          )}
-
-                          <div className="flex items-center justify-between text-sm">
-                            <div className="flex items-center gap-1">
-                              <Users className="h-4 w-4" />
-                              <span>{challenge.participants_count.toLocaleString()}</span>
-                            </div>
-                            <div className="flex items-center gap-1">
-                              <Calendar className="h-4 w-4" />
-                              <span>{formatDistanceToNow(new Date(challenge.end_date))}</span>
-                            </div>
-                          </div>
-
-                          <div className="flex items-center justify-between">
-                            <div>
-                              <p className="text-sm text-muted-foreground">Reward</p>
-                              <div className="flex items-center gap-1">
-                                <Trophy className="h-4 w-4 text-yellow-600" />
-                                <span className="font-medium">{challenge.reward_points} pts</span>
-                              </div>
-                            </div>
-                            <Button
-                              variant={challenge.is_joined ? "outline" : "default"}
-                              size="sm"
-                              onClick={() => !challenge.is_joined && handleJoinChallenge(challenge.id)}
-                              disabled={challenge.is_joined}
-                            >
-                              {challenge.is_joined ? (
-                                <>
-                                  <CheckCircle className="h-4 w-4 mr-1" />
-                                  Joined
-                                </>
-                              ) : (
-                                "Join Challenge"
-                              )}
-                            </Button>
+                {isLoading
+                  ? Array.from({ length: 6 }).map((_, i) => (
+                      <Card key={i} className="h-80">
+                        <CardContent className="p-6">
+                          <div className="animate-pulse space-y-4">
+                            <div className="h-4 bg-gray-200 rounded w-3/4"></div>
+                            <div className="h-3 bg-gray-200 rounded w-full"></div>
+                            <div className="h-3 bg-gray-200 rounded w-2/3"></div>
+                            <div className="h-2 bg-gray-200 rounded w-full"></div>
+                            <div className="h-8 bg-gray-200 rounded w-1/2"></div>
                           </div>
                         </CardContent>
                       </Card>
-                    </motion.div>
-                  ))
-                )}
+                    ))
+                  : filteredChallenges.map((challenge, index) => (
+                      <motion.div
+                        key={challenge.id}
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -20 }}
+                        transition={{ duration: 0.3, delay: index * 0.1 }}
+                      >
+                        <Card
+                          className={`h-full ${challenge.is_joined ? "ring-2 ring-primary" : ""}`}
+                        >
+                          <CardHeader>
+                            <div className="flex items-center justify-between">
+                              <Badge
+                                className={getDifficultyColor(
+                                  challenge.difficulty,
+                                )}
+                              >
+                                {challenge.difficulty}
+                              </Badge>
+                              <span className="text-2xl">
+                                {getCategoryIcon(challenge.category)}
+                              </span>
+                            </div>
+                            <CardTitle className="text-lg">
+                              {challenge.title}
+                            </CardTitle>
+                            <CardDescription className="line-clamp-2">
+                              {challenge.description}
+                            </CardDescription>
+                          </CardHeader>
+                          <CardContent className="space-y-4">
+                            {challenge.user_progress !== undefined && (
+                              <>
+                                <div className="flex items-center justify-between text-sm">
+                                  <span className="text-muted-foreground">
+                                    Your Progress
+                                  </span>
+                                  <span className="font-medium">
+                                    {challenge.user_progress}%
+                                  </span>
+                                </div>
+                                <Progress
+                                  value={challenge.user_progress}
+                                  className="h-2"
+                                />
+                              </>
+                            )}
+
+                            <div className="flex items-center justify-between text-sm">
+                              <div className="flex items-center gap-1">
+                                <Users className="h-4 w-4" />
+                                <span>
+                                  {challenge.participants_count.toLocaleString()}
+                                </span>
+                              </div>
+                              <div className="flex items-center gap-1">
+                                <Calendar className="h-4 w-4" />
+                                <span>
+                                  {formatDistanceToNow(
+                                    new Date(challenge.end_date),
+                                  )}
+                                </span>
+                              </div>
+                            </div>
+
+                            <div className="flex items-center justify-between">
+                              <div>
+                                <p className="text-sm text-muted-foreground">
+                                  Reward
+                                </p>
+                                <div className="flex items-center gap-1">
+                                  <Trophy className="h-4 w-4 text-yellow-600" />
+                                  <span className="font-medium">
+                                    {challenge.reward_points} pts
+                                  </span>
+                                </div>
+                              </div>
+                              <Button
+                                variant={
+                                  challenge.is_joined ? "outline" : "default"
+                                }
+                                size="sm"
+                                onClick={() =>
+                                  !challenge.is_joined &&
+                                  handleJoinChallenge(challenge.id)
+                                }
+                                disabled={challenge.is_joined}
+                              >
+                                {challenge.is_joined ? (
+                                  <>
+                                    <CheckCircle className="h-4 w-4 mr-1" />
+                                    Joined
+                                  </>
+                                ) : (
+                                  "Join Challenge"
+                                )}
+                              </Button>
+                            </div>
+                          </CardContent>
+                        </Card>
+                      </motion.div>
+                    ))}
               </AnimatePresence>
             </div>
           </motion.div>
@@ -723,13 +827,22 @@ export default function CommunityHub() {
                 <div className="flex items-center gap-4">
                   <Avatar>
                     <AvatarFallback>
-                      {state.user?.name?.split(" ").map(n => n[0]).join("") || "U"}
+                      {state.user?.name
+                        ?.split(" ")
+                        .map((n) => n[0])
+                        .join("") || "U"}
                     </AvatarFallback>
                   </Avatar>
                   <div className="flex-1">
-                    <Dialog open={showCreatePost} onOpenChange={setShowCreatePost}>
+                    <Dialog
+                      open={showCreatePost}
+                      onOpenChange={setShowCreatePost}
+                    >
                       <DialogTrigger asChild>
-                        <Button variant="outline" className="w-full justify-start">
+                        <Button
+                          variant="outline"
+                          className="w-full justify-start"
+                        >
                           <Plus className="h-4 w-4 mr-2" />
                           Share your eco-journey...
                         </Button>
@@ -744,15 +857,29 @@ export default function CommunityHub() {
                         <div className="space-y-4">
                           <div>
                             <Label htmlFor="post-type">Post Type</Label>
-                            <Select value={newPost.type} onValueChange={(value) => setNewPost(prev => ({ ...prev, type: value as any }))}>
+                            <Select
+                              value={newPost.type}
+                              onValueChange={(value) =>
+                                setNewPost((prev) => ({
+                                  ...prev,
+                                  type: value as any,
+                                }))
+                              }
+                            >
                               <SelectTrigger>
                                 <SelectValue />
                               </SelectTrigger>
                               <SelectContent>
                                 <SelectItem value="tip">💡 Tip</SelectItem>
-                                <SelectItem value="achievement">🏆 Achievement</SelectItem>
-                                <SelectItem value="question">❓ Question</SelectItem>
-                                <SelectItem value="challenge">🎯 Challenge</SelectItem>
+                                <SelectItem value="achievement">
+                                  🏆 Achievement
+                                </SelectItem>
+                                <SelectItem value="question">
+                                  ❓ Question
+                                </SelectItem>
+                                <SelectItem value="challenge">
+                                  🎯 Challenge
+                                </SelectItem>
                               </SelectContent>
                             </Select>
                           </div>
@@ -762,7 +889,12 @@ export default function CommunityHub() {
                               id="post-title"
                               placeholder="Enter a catchy title..."
                               value={newPost.title}
-                              onChange={(e) => setNewPost(prev => ({ ...prev, title: e.target.value }))}
+                              onChange={(e) =>
+                                setNewPost((prev) => ({
+                                  ...prev,
+                                  title: e.target.value,
+                                }))
+                              }
                             />
                           </div>
                           <div>
@@ -771,13 +903,21 @@ export default function CommunityHub() {
                               id="post-content"
                               placeholder="Share your story, tips, or ask questions..."
                               value={newPost.content}
-                              onChange={(e) => setNewPost(prev => ({ ...prev, content: e.target.value }))}
+                              onChange={(e) =>
+                                setNewPost((prev) => ({
+                                  ...prev,
+                                  content: e.target.value,
+                                }))
+                              }
                               rows={4}
                             />
                           </div>
                         </div>
                         <DialogFooter>
-                          <Button variant="outline" onClick={() => setShowCreatePost(false)}>
+                          <Button
+                            variant="outline"
+                            onClick={() => setShowCreatePost(false)}
+                          >
                             Cancel
                           </Button>
                           <Button onClick={handleCreatePost}>
@@ -795,90 +935,113 @@ export default function CommunityHub() {
             {/* Community Posts */}
             <div className="space-y-4">
               <AnimatePresence mode="wait">
-                {isLoading ? (
-                  Array.from({ length: 3 }).map((_, i) => (
-                    <Card key={i}>
-                      <CardContent className="p-6">
-                        <div className="animate-pulse space-y-4">
-                          <div className="flex items-center gap-4">
-                            <div className="w-10 h-10 bg-gray-200 rounded-full"></div>
-                            <div className="space-y-2">
-                              <div className="h-4 bg-gray-200 rounded w-32"></div>
-                              <div className="h-3 bg-gray-200 rounded w-24"></div>
-                            </div>
-                          </div>
-                          <div className="space-y-2">
-                            <div className="h-4 bg-gray-200 rounded w-full"></div>
-                            <div className="h-4 bg-gray-200 rounded w-3/4"></div>
-                          </div>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  ))
-                ) : (
-                  posts.map((post, index) => (
-                    <motion.div
-                      key={post.id}
-                      initial={{ opacity: 0, y: 20 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      exit={{ opacity: 0, y: -20 }}
-                      transition={{ duration: 0.3, delay: index * 0.1 }}
-                    >
-                      <Card>
+                {isLoading
+                  ? Array.from({ length: 3 }).map((_, i) => (
+                      <Card key={i}>
                         <CardContent className="p-6">
-                          <div className="space-y-4">
-                            <div className="flex items-start gap-4">
-                              <Avatar>
-                                <AvatarFallback>
-                                  {post.user.name.split(" ").map(n => n[0]).join("")}
-                                </AvatarFallback>
-                              </Avatar>
-                              <div className="flex-1">
-                                <div className="flex items-center gap-2 mb-2">
-                                  <h4 className="font-semibold">{post.user.name}</h4>
-                                  {getPostTypeIcon(post.type)}
-                                  <Badge variant="secondary" className="text-xs">
-                                    {post.type}
-                                  </Badge>
-                                  <span className="text-xs text-muted-foreground">
-                                    {formatDistanceToNow(new Date(post.created_at))} ago
-                                  </span>
-                                </div>
-                                <h3 className="font-medium mb-2">{post.title}</h3>
-                                <p className="text-muted-foreground">{post.content}</p>
+                          <div className="animate-pulse space-y-4">
+                            <div className="flex items-center gap-4">
+                              <div className="w-10 h-10 bg-gray-200 rounded-full"></div>
+                              <div className="space-y-2">
+                                <div className="h-4 bg-gray-200 rounded w-32"></div>
+                                <div className="h-3 bg-gray-200 rounded w-24"></div>
                               </div>
                             </div>
-
-                            <div className="flex items-center justify-between pt-2 border-t">
-                              <div className="flex items-center gap-4">
-                                <Button
-                                  variant="ghost"
-                                  size="sm"
-                                  onClick={() => handleLikePost(post.id)}
-                                  className={`gap-1 ${post.is_liked ? "text-red-600" : ""}`}
-                                >
-                                  <Heart className={`h-4 w-4 ${post.is_liked ? "fill-current" : ""}`} />
-                                  {post.likes}
-                                </Button>
-                                <Button variant="ghost" size="sm" className="gap-1">
-                                  <MessageCircle className="h-4 w-4" />
-                                  {post.comments_count}
-                                </Button>
-                                <Button variant="ghost" size="sm" className="gap-1">
-                                  <Share2 className="h-4 w-4" />
-                                  Share
-                                </Button>
-                              </div>
-                              <Button variant="ghost" size="sm">
-                                <MoreHorizontal className="h-4 w-4" />
-                              </Button>
+                            <div className="space-y-2">
+                              <div className="h-4 bg-gray-200 rounded w-full"></div>
+                              <div className="h-4 bg-gray-200 rounded w-3/4"></div>
                             </div>
                           </div>
                         </CardContent>
                       </Card>
-                    </motion.div>
-                  ))
-                )}
+                    ))
+                  : posts.map((post, index) => (
+                      <motion.div
+                        key={post.id}
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -20 }}
+                        transition={{ duration: 0.3, delay: index * 0.1 }}
+                      >
+                        <Card>
+                          <CardContent className="p-6">
+                            <div className="space-y-4">
+                              <div className="flex items-start gap-4">
+                                <Avatar>
+                                  <AvatarFallback>
+                                    {post.user.name
+                                      .split(" ")
+                                      .map((n) => n[0])
+                                      .join("")}
+                                  </AvatarFallback>
+                                </Avatar>
+                                <div className="flex-1">
+                                  <div className="flex items-center gap-2 mb-2">
+                                    <h4 className="font-semibold">
+                                      {post.user.name}
+                                    </h4>
+                                    {getPostTypeIcon(post.type)}
+                                    <Badge
+                                      variant="secondary"
+                                      className="text-xs"
+                                    >
+                                      {post.type}
+                                    </Badge>
+                                    <span className="text-xs text-muted-foreground">
+                                      {formatDistanceToNow(
+                                        new Date(post.created_at),
+                                      )}{" "}
+                                      ago
+                                    </span>
+                                  </div>
+                                  <h3 className="font-medium mb-2">
+                                    {post.title}
+                                  </h3>
+                                  <p className="text-muted-foreground">
+                                    {post.content}
+                                  </p>
+                                </div>
+                              </div>
+
+                              <div className="flex items-center justify-between pt-2 border-t">
+                                <div className="flex items-center gap-4">
+                                  <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={() => handleLikePost(post.id)}
+                                    className={`gap-1 ${post.is_liked ? "text-red-600" : ""}`}
+                                  >
+                                    <Heart
+                                      className={`h-4 w-4 ${post.is_liked ? "fill-current" : ""}`}
+                                    />
+                                    {post.likes}
+                                  </Button>
+                                  <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    className="gap-1"
+                                  >
+                                    <MessageCircle className="h-4 w-4" />
+                                    {post.comments_count}
+                                  </Button>
+                                  <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    className="gap-1"
+                                  >
+                                    <Share2 className="h-4 w-4" />
+                                    Share
+                                  </Button>
+                                </div>
+                                <Button variant="ghost" size="sm">
+                                  <MoreHorizontal className="h-4 w-4" />
+                                </Button>
+                              </div>
+                            </div>
+                          </CardContent>
+                        </Card>
+                      </motion.div>
+                    ))}
               </AnimatePresence>
             </div>
           </motion.div>
@@ -898,85 +1061,95 @@ export default function CommunityHub() {
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
-                {isLoading ? (
-                  Array.from({ length: 5 }).map((_, i) => (
-                    <div key={i} className="animate-pulse flex items-center gap-4 p-4 rounded-lg bg-muted/50">
-                      <div className="w-8 h-8 bg-gray-200 rounded-full"></div>
-                      <div className="w-10 h-10 bg-gray-200 rounded-full"></div>
-                      <div className="flex-1 space-y-2">
-                        <div className="h-4 bg-gray-200 rounded w-32"></div>
-                        <div className="h-3 bg-gray-200 rounded w-24"></div>
-                      </div>
-                      <div className="space-y-2">
-                        <div className="h-4 bg-gray-200 rounded w-16"></div>
-                        <div className="h-3 bg-gray-200 rounded w-12"></div>
-                      </div>
-                    </div>
-                  ))
-                ) : (
-                  leaderboard.map((entry, index) => (
-                    <motion.div
-                      key={entry.rank}
-                      initial={{ opacity: 0, x: -20 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      transition={{ duration: 0.3, delay: index * 0.1 }}
-                      className={`flex items-center gap-4 p-4 rounded-lg ${
-                        entry.user_name === state.user?.name
-                          ? "bg-primary/10 border border-primary/20"
-                          : "bg-muted/50"
-                      }`}
-                    >
-                      <div className="flex items-center gap-3">
-                        <div
-                          className={`w-8 h-8 rounded-full flex items-center justify-center font-bold ${
-                            entry.rank <= 3
-                              ? "bg-yellow-500 text-white"
-                              : "bg-gray-200 text-gray-700"
-                          }`}
-                        >
-                          {entry.rank <= 3 ? (
-                            <Trophy className="h-4 w-4" />
-                          ) : (
-                            entry.rank
-                          )}
+                {isLoading
+                  ? Array.from({ length: 5 }).map((_, i) => (
+                      <div
+                        key={i}
+                        className="animate-pulse flex items-center gap-4 p-4 rounded-lg bg-muted/50"
+                      >
+                        <div className="w-8 h-8 bg-gray-200 rounded-full"></div>
+                        <div className="w-10 h-10 bg-gray-200 rounded-full"></div>
+                        <div className="flex-1 space-y-2">
+                          <div className="h-4 bg-gray-200 rounded w-32"></div>
+                          <div className="h-3 bg-gray-200 rounded w-24"></div>
                         </div>
-                        <Avatar>
-                          <AvatarFallback>
-                            {entry.user_name.split(" ").map(n => n[0]).join("")}
-                          </AvatarFallback>
-                        </Avatar>
+                        <div className="space-y-2">
+                          <div className="h-4 bg-gray-200 rounded w-16"></div>
+                          <div className="h-3 bg-gray-200 rounded w-12"></div>
+                        </div>
                       </div>
+                    ))
+                  : leaderboard.map((entry, index) => (
+                      <motion.div
+                        key={entry.rank}
+                        initial={{ opacity: 0, x: -20 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ duration: 0.3, delay: index * 0.1 }}
+                        className={`flex items-center gap-4 p-4 rounded-lg ${
+                          entry.user_name === state.user?.name
+                            ? "bg-primary/10 border border-primary/20"
+                            : "bg-muted/50"
+                        }`}
+                      >
+                        <div className="flex items-center gap-3">
+                          <div
+                            className={`w-8 h-8 rounded-full flex items-center justify-center font-bold ${
+                              entry.rank <= 3
+                                ? "bg-yellow-500 text-white"
+                                : "bg-gray-200 text-gray-700"
+                            }`}
+                          >
+                            {entry.rank <= 3 ? (
+                              <Trophy className="h-4 w-4" />
+                            ) : (
+                              entry.rank
+                            )}
+                          </div>
+                          <Avatar>
+                            <AvatarFallback>
+                              {entry.user_name
+                                .split(" ")
+                                .map((n) => n[0])
+                                .join("")}
+                            </AvatarFallback>
+                          </Avatar>
+                        </div>
 
-                      <div className="flex-1">
-                        <div className="flex items-center gap-2">
-                          <h4 className="font-semibold">{entry.user_name}</h4>
-                          {entry.user_name === state.user?.name && (
-                            <Badge variant="secondary">You</Badge>
-                          )}
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2">
+                            <h4 className="font-semibold">{entry.user_name}</h4>
+                            {entry.user_name === state.user?.name && (
+                              <Badge variant="secondary">You</Badge>
+                            )}
+                          </div>
+                          <div className="text-sm text-muted-foreground">
+                            {entry.activities_count} activities •{" "}
+                            {entry.streak_days} day streak
+                          </div>
                         </div>
-                        <div className="text-sm text-muted-foreground">
-                          {entry.activities_count} activities • {entry.streak_days} day streak
-                        </div>
-                      </div>
 
-                      <div className="text-right">
-                        <p className="font-bold text-lg">
-                          {entry.total_carbon_saved.toFixed(1)} kg
-                        </p>
-                        <div className={`text-sm flex items-center gap-1 ${
-                          entry.change_percentage > 0 ? "text-green-600" : "text-red-600"
-                        }`}>
-                          {entry.change_percentage > 0 ? (
-                            <TrendingUp className="h-3 w-3" />
-                          ) : (
-                            <TrendingDown className="h-3 w-3" />
-                          )}
-                          {entry.change_percentage > 0 ? "+" : ""}{entry.change_percentage}%
+                        <div className="text-right">
+                          <p className="font-bold text-lg">
+                            {entry.total_carbon_saved.toFixed(1)} kg
+                          </p>
+                          <div
+                            className={`text-sm flex items-center gap-1 ${
+                              entry.change_percentage > 0
+                                ? "text-green-600"
+                                : "text-red-600"
+                            }`}
+                          >
+                            {entry.change_percentage > 0 ? (
+                              <TrendingUp className="h-3 w-3" />
+                            ) : (
+                              <TrendingDown className="h-3 w-3" />
+                            )}
+                            {entry.change_percentage > 0 ? "+" : ""}
+                            {entry.change_percentage}%
+                          </div>
                         </div>
-                      </div>
-                    </motion.div>
-                  ))
-                )}
+                      </motion.div>
+                    ))}
               </CardContent>
             </Card>
           </motion.div>
@@ -992,10 +1165,18 @@ export default function CommunityHub() {
               <Users className="h-16 w-16 mx-auto text-muted-foreground mb-4" />
               <h3 className="text-xl font-semibold mb-2">Groups Coming Soon</h3>
               <p className="text-muted-foreground mb-4">
-                Connect with like-minded individuals in your area and form eco-friendly groups. 
-                This feature is currently in development.
+                Connect with like-minded individuals in your area and form
+                eco-friendly groups. This feature is currently in development.
               </p>
-              <Button onClick={() => toast({ title: "Thanks!", description: "You'll be notified when groups are available!" })}>
+              <Button
+                onClick={() =>
+                  toast({
+                    title: "Thanks!",
+                    description:
+                      "You'll be notified when groups are available!",
+                  })
+                }
+              >
                 <UserPlus className="h-4 w-4 mr-2" />
                 Get Notified
               </Button>

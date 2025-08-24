@@ -97,9 +97,17 @@ export function createServer() {
   app.post("/api/community/posts", requireAuth, handleCreatePost);
   app.post("/api/community/posts/:postId/like", requireAuth, handleToggleLike);
   app.get("/api/community/posts/:postId/comments", handleGetComments);
-  app.post("/api/community/posts/:postId/comments", requireAuth, handleCreateComment);
+  app.post(
+    "/api/community/posts/:postId/comments",
+    requireAuth,
+    handleCreateComment,
+  );
   app.get("/api/community/challenges", handleGetChallenges);
-  app.post("/api/community/challenges/:challengeId/join", requireAuth, handleJoinChallenge);
+  app.post(
+    "/api/community/challenges/:challengeId/join",
+    requireAuth,
+    handleJoinChallenge,
+  );
   app.get("/api/community/leaderboard", handleGetLeaderboard);
 
   // Error handling middleware

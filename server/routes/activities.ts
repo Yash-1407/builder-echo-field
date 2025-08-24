@@ -10,16 +10,18 @@ const createActivitySchema = z.object({
   unit: z.string().min(1, "Unit is required"),
   date: z.string().datetime(),
   category: z.string().min(1, "Category is required"),
-  details: z.object({
-    distance: z.number().optional(),
-    vehicle_type: z.string().optional(),
-    energy_amount: z.number().optional(),
-    energy_source: z.string().optional(),
-    meal_type: z.string().optional(),
-    food_type: z.string().optional(),
-    item_type: z.string().optional(),
-    quantity: z.number().optional(),
-  }).optional(),
+  details: z
+    .object({
+      distance: z.number().optional(),
+      vehicle_type: z.string().optional(),
+      energy_amount: z.number().optional(),
+      energy_source: z.string().optional(),
+      meal_type: z.string().optional(),
+      food_type: z.string().optional(),
+      item_type: z.string().optional(),
+      quantity: z.number().optional(),
+    })
+    .optional(),
 });
 
 const updateActivitySchema = createActivitySchema.partial();
@@ -111,7 +113,11 @@ export const handleUpdateActivity: RequestHandler = async (req, res) => {
       .eq("id", activityId)
       .single();
 
-    if (fetchError || !existingActivity || existingActivity.user_id !== userId) {
+    if (
+      fetchError ||
+      !existingActivity ||
+      existingActivity.user_id !== userId
+    ) {
       return res.status(404).json({ error: "Activity not found" });
     }
 
@@ -157,7 +163,11 @@ export const handleDeleteActivity: RequestHandler = async (req, res) => {
       .eq("id", activityId)
       .single();
 
-    if (fetchError || !existingActivity || existingActivity.user_id !== userId) {
+    if (
+      fetchError ||
+      !existingActivity ||
+      existingActivity.user_id !== userId
+    ) {
       return res.status(404).json({ error: "Activity not found" });
     }
 
@@ -200,7 +210,9 @@ export const handleGetRecentActivities: RequestHandler = async (req, res) => {
 
     if (error) {
       console.error("Get recent activities error:", error);
-      return res.status(500).json({ error: "Failed to fetch recent activities" });
+      return res
+        .status(500)
+        .json({ error: "Failed to fetch recent activities" });
     }
 
     res.json({ activities: activities || [] });
@@ -308,17 +320,19 @@ export const handleGetActivityStats: RequestHandler = async (req, res) => {
     }
 
     // Calculate stats
-    const totalImpact = activities?.reduce((sum, activity) => sum + activity.impact, 0) || 0;
+    const totalImpact =
+      activities?.reduce((sum, activity) => sum + activity.impact, 0) || 0;
     const activityCount = activities?.length || 0;
 
-    const byCategory = activities?.reduce((acc: any, activity) => {
-      if (!acc[activity.type]) {
-        acc[activity.type] = { count: 0, impact: 0 };
-      }
-      acc[activity.type].count++;
-      acc[activity.type].impact += activity.impact;
-      return acc;
-    }, {}) || {};
+    const byCategory =
+      activities?.reduce((acc: any, activity) => {
+        if (!acc[activity.type]) {
+          acc[activity.type] = { count: 0, impact: 0 };
+        }
+        acc[activity.type].count++;
+        acc[activity.type].impact += activity.impact;
+        return acc;
+      }, {}) || {};
 
     // Trend data (last 6 months)
     const trendData = [];
@@ -328,12 +342,16 @@ export const handleGetActivityStats: RequestHandler = async (req, res) => {
       const monthStart = new Date(date.getFullYear(), date.getMonth(), 1);
       const monthEnd = new Date(date.getFullYear(), date.getMonth() + 1, 0);
 
-      const monthActivities = activities?.filter(activity => {
-        const activityDate = new Date(activity.date);
-        return activityDate >= monthStart && activityDate <= monthEnd;
-      }) || [];
+      const monthActivities =
+        activities?.filter((activity) => {
+          const activityDate = new Date(activity.date);
+          return activityDate >= monthStart && activityDate <= monthEnd;
+        }) || [];
 
-      const monthImpact = monthActivities.reduce((sum, activity) => sum + activity.impact, 0);
+      const monthImpact = monthActivities.reduce(
+        (sum, activity) => sum + activity.impact,
+        0,
+      );
 
       trendData.push({
         month: date.toLocaleDateString("en-US", { month: "short" }),
