@@ -30,7 +30,9 @@ import { motion, AnimatePresence } from "framer-motion";
 
 export default function Dashboard() {
   const [selectedPeriod, setSelectedPeriod] = useState("month");
+  const [showCelebration, setShowCelebration] = useState(false);
   const { getTotalFootprint, getFootprintByCategory, getTrendData, state } = useActivity();
+  const { state: realtimeState } = useRealtime();
 
   // Get real data from context
   const totalFootprint = getTotalFootprint('month');
@@ -44,6 +46,14 @@ export default function Dashboard() {
 
   // Calculate eco score based on activities and goals
   const ecoScore = Math.max(500 + Math.round((monthlyTarget - totalFootprint) * 100), 0);
+
+  // Trigger celebration when daily progress increases significantly
+  useEffect(() => {
+    if (realtimeState.dailyGoalProgress > 90 && realtimeState.dailyGoalProgress !== 0) {
+      setShowCelebration(true);
+      setTimeout(() => setShowCelebration(false), 3000);
+    }
+  }, [realtimeState.dailyGoalProgress]);
 
   const monthlyData = [
     { name: "Week 1", value: 1.4 },
