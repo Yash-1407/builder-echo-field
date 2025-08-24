@@ -4,16 +4,16 @@ import {
   Dialog,
   DialogContent,
   DialogDescription,
-  DialogFooter,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { useActivity, User } from "@/contexts/ActivityContext";
-import { Leaf, Mail, Lock, User as UserIcon, Target } from "lucide-react";
+import { useActivity } from "@/contexts/ActivityContext";
+import { Leaf, Mail, Lock, User as UserIcon, Target, Loader2 } from "lucide-react";
 import { motion } from "framer-motion";
+import { toast } from "@/components/ui/use-toast";
 
 // Google Icon SVG Component
 const GoogleIcon = () => (
@@ -43,8 +43,7 @@ interface AuthModalProps {
 }
 
 export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
-  const { login } = useActivity();
-  const [isLoading, setIsLoading] = useState(false);
+  const { login, register, loginWithGoogle, state } = useActivity();
   const [loginForm, setLoginForm] = useState({ email: "", password: "" });
   const [signupForm, setSignupForm] = useState({
     name: "",
@@ -53,61 +52,60 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
     confirmPassword: "",
     monthlyTarget: "4.5",
   });
+  const [errors, setErrors] = useState<Record<string, string>>({});
+
+  const clearErrors = () => setErrors({});
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    setIsLoading(true);
+    clearErrors();
+
+    if (!loginForm.email || !loginForm.password) {
+      setErrors({ form: "Please fill in all fields" });
+      return;
+    }
 
     try {
-      // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-
-      const user: User = {
-        name: loginForm.email.split("@")[0] || "User",
+      await login({
         email: loginForm.email,
-        monthlyTarget: 4.5,
-        goals: {
-          carbonReduction: 30,
-          transportReduction: 25,
-          renewableEnergy: 80,
-        },
-      };
-
-      login(user);
+        password: loginForm.password,
+      });
+      
       onClose();
       setLoginForm({ email: "", password: "" });
-    } catch (error) {
-      console.error("Login error:", error);
-    } finally {
-      setIsLoading(false);
+    } catch (error: any) {
+      setErrors({ form: error.message || "Login failed" });
     }
   };
 
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (signupForm.password !== signupForm.confirmPassword) {
-      alert("Passwords don't match");
+    clearErrors();
+
+    // Validation
+    if (!signupForm.name || !signupForm.email || !signupForm.password) {
+      setErrors({ form: "Please fill in all required fields" });
       return;
     }
 
-    setIsLoading(true);
+    if (signupForm.password !== signupForm.confirmPassword) {
+      setErrors({ confirmPassword: "Passwords don't match" });
+      return;
+    }
+
+    if (signupForm.password.length < 6) {
+      setErrors({ password: "Password must be at least 6 characters" });
+      return;
+    }
 
     try {
-      // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-
-      const user: User = {
+      await register({
         name: signupForm.name,
         email: signupForm.email,
+        password: signupForm.password,
         monthlyTarget: parseFloat(signupForm.monthlyTarget),
-        goals: {
-          carbonReduction: 30,
-          transportReduction: 25,
-          renewableEnergy: 80,
-        },
-      };
+      });
 
-      login(user);
       onClose();
       setSignupForm({
         name: "",
@@ -116,51 +114,45 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
         confirmPassword: "",
         monthlyTarget: "4.5",
       });
-    } catch (error) {
-      console.error("Signup error:", error);
-    } finally {
-      setIsLoading(false);
+    } catch (error: any) {
+      setErrors({ form: error.message || "Registration failed" });
     }
   };
 
-  const handleDemoLogin = () => {
-    const demoUser: User = {
-      name: "Demo User",
-      email: "demo@carbonmeter.com",
-      monthlyTarget: 4.5,
-      goals: {
-        carbonReduction: 30,
-        transportReduction: 25,
-        renewableEnergy: 80,
-      },
-    };
-    login(demoUser);
-    onClose();
+  const handleGoogleLogin = async () => {
+    clearErrors();
+    
+    try {
+      await loginWithGoogle();
+      // Note: Google OAuth will redirect, so the modal close happens in callback
+    } catch (error: any) {
+      setErrors({ form: error.message || "Google login failed" });
+    }
   };
 
-  const handleGoogleLogin = async () => {
-    setIsLoading(true);
+  const handleDemoLogin = async () => {
+    clearErrors();
+    
     try {
-      // Simulate Google OAuth flow
-      await new Promise((resolve) => setTimeout(resolve, 1500));
-
-      const googleUser: User = {
-        name: "Google User",
-        email: "user@gmail.com",
-        monthlyTarget: 4.5,
-        goals: {
-          carbonReduction: 30,
-          transportReduction: 25,
-          renewableEnergy: 80,
-        },
-      };
-
-      login(googleUser);
+      await login({
+        email: "demo@carbonmeter.com",
+        password: "demo123",
+      });
+      
       onClose();
-    } catch (error) {
-      console.error("Google login error:", error);
-    } finally {
-      setIsLoading(false);
+    } catch (error: any) {
+      // If demo user doesn't exist, create it
+      try {
+        await register({
+          name: "Demo User",
+          email: "demo@carbonmeter.com",
+          password: "demo123",
+          monthlyTarget: 4.5,
+        });
+        onClose();
+      } catch (registerError: any) {
+        setErrors({ form: "Demo login failed" });
+      }
     }
   };
 
@@ -183,6 +175,12 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
           </DialogDescription>
         </DialogHeader>
 
+        {errors.form && (
+          <div className="bg-destructive/10 text-destructive text-sm p-3 rounded-md">
+            {errors.form}
+          </div>
+        )}
+
         <Tabs defaultValue="login" className="w-full">
           <TabsList className="grid w-full grid-cols-2">
             <TabsTrigger value="login">Sign In</TabsTrigger>
@@ -193,10 +191,7 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
           <TabsContent value="login" className="space-y-4">
             <form onSubmit={handleLogin} className="space-y-4">
               <div className="space-y-2">
-                <Label
-                  htmlFor="login-email"
-                  className="flex items-center gap-2"
-                >
+                <Label htmlFor="login-email" className="flex items-center gap-2">
                   <Mail className="h-4 w-4" />
                   Email
                 </Label>
@@ -209,13 +204,11 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
                   }
                   placeholder="your@email.com"
                   required
+                  disabled={state.isLoading}
                 />
               </div>
               <div className="space-y-2">
-                <Label
-                  htmlFor="login-password"
-                  className="flex items-center gap-2"
-                >
+                <Label htmlFor="login-password" className="flex items-center gap-2">
                   <Lock className="h-4 w-4" />
                   Password
                 </Label>
@@ -231,12 +224,24 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
                   }
                   placeholder="••••••••"
                   required
+                  disabled={state.isLoading}
                 />
               </div>
 
               <div className="space-y-3">
-                <Button type="submit" disabled={isLoading} className="w-full">
-                  {isLoading ? "Signing in..." : "Sign In"}
+                <Button 
+                  type="submit" 
+                  disabled={state.isLoading} 
+                  className="w-full"
+                >
+                  {state.isLoading ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Signing in...
+                    </>
+                  ) : (
+                    "Sign In"
+                  )}
                 </Button>
 
                 <div className="relative">
@@ -255,19 +260,28 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
                     type="button"
                     variant="outline"
                     onClick={handleGoogleLogin}
-                    disabled={isLoading}
+                    disabled={state.isLoading}
                     className="flex items-center gap-2"
                   >
-                    <GoogleIcon />
+                    {state.isLoading ? (
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                    ) : (
+                      <GoogleIcon />
+                    )}
                     Google
                   </Button>
                   <Button
                     type="button"
                     variant="outline"
                     onClick={handleDemoLogin}
+                    disabled={state.isLoading}
                     className="w-full"
                   >
-                    Demo
+                    {state.isLoading ? (
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                    ) : (
+                      "Demo"
+                    )}
                   </Button>
                 </div>
               </div>
@@ -278,12 +292,9 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
           <TabsContent value="signup" className="space-y-4">
             <form onSubmit={handleSignup} className="space-y-4">
               <div className="space-y-2">
-                <Label
-                  htmlFor="signup-name"
-                  className="flex items-center gap-2"
-                >
+                <Label htmlFor="signup-name" className="flex items-center gap-2">
                   <UserIcon className="h-4 w-4" />
-                  Full Name
+                  Full Name *
                 </Label>
                 <Input
                   id="signup-name"
@@ -294,15 +305,13 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
                   }
                   placeholder="John Doe"
                   required
+                  disabled={state.isLoading}
                 />
               </div>
               <div className="space-y-2">
-                <Label
-                  htmlFor="signup-email"
-                  className="flex items-center gap-2"
-                >
+                <Label htmlFor="signup-email" className="flex items-center gap-2">
                   <Mail className="h-4 w-4" />
-                  Email
+                  Email *
                 </Label>
                 <Input
                   id="signup-email"
@@ -316,16 +325,14 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
                   }
                   placeholder="your@email.com"
                   required
+                  disabled={state.isLoading}
                 />
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label
-                    htmlFor="signup-password"
-                    className="flex items-center gap-2"
-                  >
+                  <Label htmlFor="signup-password" className="flex items-center gap-2">
                     <Lock className="h-4 w-4" />
-                    Password
+                    Password *
                   </Label>
                   <Input
                     id="signup-password"
@@ -337,12 +344,16 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
                         password: e.target.value,
                       }))
                     }
-                    placeholder="••••••���•"
+                    placeholder="••••••••"
                     required
+                    disabled={state.isLoading}
                   />
+                  {errors.password && (
+                    <p className="text-sm text-destructive">{errors.password}</p>
+                  )}
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="confirm-password">Confirm</Label>
+                  <Label htmlFor="confirm-password">Confirm *</Label>
                   <Input
                     id="confirm-password"
                     type="password"
@@ -355,14 +366,15 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
                     }
                     placeholder="••••••••"
                     required
+                    disabled={state.isLoading}
                   />
+                  {errors.confirmPassword && (
+                    <p className="text-sm text-destructive">{errors.confirmPassword}</p>
+                  )}
                 </div>
               </div>
               <div className="space-y-2">
-                <Label
-                  htmlFor="monthly-target"
-                  className="flex items-center gap-2"
-                >
+                <Label htmlFor="monthly-target" className="flex items-center gap-2">
                   <Target className="h-4 w-4" />
                   Monthly CO₂ Target (tons)
                 </Label>
@@ -370,6 +382,8 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
                   id="monthly-target"
                   type="number"
                   step="0.1"
+                  min="0.1"
+                  max="50"
                   value={signupForm.monthlyTarget}
                   onChange={(e) =>
                     setSignupForm((prev) => ({
@@ -378,6 +392,7 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
                     }))
                   }
                   placeholder="4.5"
+                  disabled={state.isLoading}
                 />
                 <p className="text-xs text-muted-foreground">
                   Average person generates ~4.5 tons CO₂ per month
@@ -385,8 +400,19 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
               </div>
 
               <div className="space-y-3">
-                <Button type="submit" disabled={isLoading} className="w-full">
-                  {isLoading ? "Creating account..." : "Create Account"}
+                <Button 
+                  type="submit" 
+                  disabled={state.isLoading} 
+                  className="w-full"
+                >
+                  {state.isLoading ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Creating account...
+                    </>
+                  ) : (
+                    "Create Account"
+                  )}
                 </Button>
 
                 <div className="relative">
@@ -404,10 +430,14 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
                   type="button"
                   variant="outline"
                   onClick={handleGoogleLogin}
-                  disabled={isLoading}
+                  disabled={state.isLoading}
                   className="w-full flex items-center gap-2"
                 >
-                  <GoogleIcon />
+                  {state.isLoading ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <GoogleIcon />
+                  )}
                   Continue with Google
                 </Button>
               </div>
