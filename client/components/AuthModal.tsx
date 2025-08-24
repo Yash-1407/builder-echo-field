@@ -329,9 +329,31 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
                 </p>
               </div>
               
-              <Button type="submit" disabled={isLoading} className="w-full">
-                {isLoading ? "Creating account..." : "Create Account"}
-              </Button>
+              <div className="space-y-3">
+                <Button type="submit" disabled={isLoading} className="w-full">
+                  {isLoading ? "Creating account..." : "Create Account"}
+                </Button>
+
+                <div className="relative">
+                  <div className="absolute inset-0 flex items-center">
+                    <span className="w-full border-t" />
+                  </div>
+                  <div className="relative flex justify-center text-xs uppercase">
+                    <span className="bg-background px-2 text-muted-foreground">Or sign up with</span>
+                  </div>
+                </div>
+
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={handleGoogleLogin}
+                  disabled={isLoading}
+                  className="w-full flex items-center gap-2"
+                >
+                  <GoogleIcon />
+                  Continue with Google
+                </Button>
+              </div>
             </form>
           </TabsContent>
         </Tabs>
