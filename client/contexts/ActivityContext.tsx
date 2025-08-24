@@ -233,6 +233,13 @@ export const ActivityProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       id: Date.now().toString() + Math.random().toString(36).substr(2, 9),
     };
     dispatch({ type: 'ADD_ACTIVITY', payload: newActivity });
+
+    // Show success toast
+    toast({
+      title: "Activity Logged! 🌱",
+      description: `${activity.description} - ${activity.impact} ${activity.unit}`,
+      duration: 3000,
+    });
   };
 
   const updateActivity = (id: string, updates: Partial<Activity>) => {
