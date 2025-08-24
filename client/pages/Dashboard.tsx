@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -9,6 +9,7 @@ import ActivityChart from "@/components/ActivityChart";
 import QuickActions from "@/components/QuickActions";
 import RecentActivities from "@/components/RecentActivities";
 import { useActivity } from "@/contexts/ActivityContext";
+import { useRealtime } from "@/contexts/RealtimeContext";
 import {
   TrendingDown,
   Target,
@@ -21,9 +22,11 @@ import {
   Download,
   Share2,
   AlertTriangle,
-  CheckCircle2
+  CheckCircle2,
+  Sparkles,
+  Flame
 } from "lucide-react";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 
 export default function Dashboard() {
   const [selectedPeriod, setSelectedPeriod] = useState("month");
