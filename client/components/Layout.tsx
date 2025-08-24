@@ -80,8 +80,9 @@ export default function Layout({ children }: LayoutProps) {
             </div>
           </nav>
 
-          {/* Theme Toggle & Mobile Menu */}
-          <div className="flex items-center space-x-4">
+          {/* Notifications, Theme Toggle & Mobile Menu */}
+          <div className="flex items-center space-x-2">
+            <NotificationBell />
             <Button
               variant="ghost"
               size="sm"
