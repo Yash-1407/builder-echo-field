@@ -94,22 +94,69 @@ export default function QuickActions() {
           <div className="grid grid-cols-2 gap-3">
             {quickActions.map((action, index) => {
               const Icon = action.icon;
+              const isoCelebrating = celebrateIndex === index;
               return (
                 <motion.div
                   key={index}
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
+                  className="relative"
                 >
                   <Button
                     variant="ghost"
-                    className={`h-auto p-4 flex flex-col items-center gap-2 w-full ${action.color}`}
+                    className={`h-auto p-4 flex flex-col items-center gap-2 w-full ${action.color} relative overflow-hidden`}
                     onClick={() => handleActionClick(action.type)}
                   >
-                    <Icon className="h-6 w-6" />
+                    <motion.div
+                      animate={isoCelebrating ? {
+                        scale: [1, 1.2, 1],
+                        rotate: [0, 5, -5, 0]
+                      } : {}}
+                      transition={{ duration: 0.6 }}
+                    >
+                      <Icon className="h-6 w-6" />
+                    </motion.div>
                     <div className="text-center">
                       <div className="font-medium text-sm">{action.label}</div>
                       <div className="text-xs opacity-75">{action.description}</div>
                     </div>
+
+                    {/* Celebration sparkles */}
+                    <AnimatePresence>
+                      {isoCelebrating && (
+                        <>
+                          {[...Array(6)].map((_, i) => (
+                            <motion.div
+                              key={i}
+                              className="absolute"
+                              initial={{
+                                opacity: 0,
+                                scale: 0,
+                                x: 0,
+                                y: 0
+                              }}
+                              animate={{
+                                opacity: [0, 1, 0],
+                                scale: [0, 1, 0],
+                                x: Math.cos(i * 60 * Math.PI / 180) * 30,
+                                y: Math.sin(i * 60 * Math.PI / 180) * 30
+                              }}
+                              transition={{
+                                duration: 1,
+                                delay: i * 0.1,
+                                ease: "easeOut"
+                              }}
+                              style={{
+                                left: '50%',
+                                top: '50%',
+                              }}
+                            >
+                              <Sparkles className="h-3 w-3 text-yellow-500" />
+                            </motion.div>
+                          ))}
+                        </>
+                      )}
+                    </AnimatePresence>
                   </Button>
                 </motion.div>
               );
