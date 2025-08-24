@@ -47,6 +47,8 @@ const quickActions: QuickAction[] = [
 
 export default function QuickActions() {
   const [activeModal, setActiveModal] = useState<'transport' | 'energy' | 'food' | 'shopping' | null>(null);
+  const [celebrateIndex, setCelebrateIndex] = useState<number | null>(null);
+  const { addNotification } = useRealtime();
 
   const handleActionClick = (type: 'transport' | 'energy' | 'food' | 'shopping') => {
     setActiveModal(type);
@@ -54,6 +56,26 @@ export default function QuickActions() {
 
   const closeModal = () => {
     setActiveModal(null);
+
+    // Trigger celebration animation if modal was actually used to add activity
+    if (activeModal) {
+      const actionIndex = quickActions.findIndex(action => action.type === activeModal);
+      setCelebrateIndex(actionIndex);
+
+      // Add real-time notification
+      addNotification({
+        type: 'success',
+        title: 'Activity Added!',
+        message: `Great job tracking your ${activeModal} activity. Every action counts! 🌱`,
+        action: {
+          label: 'View Dashboard',
+          href: '/dashboard'
+        }
+      });
+
+      // Reset celebration after animation
+      setTimeout(() => setCelebrateIndex(null), 2000);
+    }
   };
 
   return (
