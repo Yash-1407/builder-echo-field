@@ -134,11 +134,101 @@ export default function Dashboard() {
           </div>
         </div>
 
-        {/* Status Alert */}
+        {/* Live Progress Indicator */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5 }}
+        >
+          <Card className="border-blue-200 bg-blue-50 dark:bg-blue-950/20 relative overflow-hidden">
+            <CardContent className="pt-6">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <motion.div
+                    animate={{
+                      scale: [1, 1.1, 1],
+                      rotate: realtimeState.isConnected ? [0, 5, -5, 0] : 0
+                    }}
+                    transition={{ duration: 2, repeat: Infinity }}
+                  >
+                    <Flame className="h-5 w-5 text-orange-500" />
+                  </motion.div>
+                  <div>
+                    <p className="font-medium text-blue-800 dark:text-blue-200">
+                      Daily Progress: {Math.round(realtimeState.dailyGoalProgress)}%
+                    </p>
+                    <p className="text-sm text-blue-600 dark:text-blue-400">
+                      Streak: {realtimeState.achievementStreak} days • {realtimeState.isConnected ? 'Live updates active' : 'Reconnecting...'}
+                    </p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-2">
+                  <motion.div
+                    className={`h-2 w-2 rounded-full ${realtimeState.isConnected ? 'bg-green-500' : 'bg-red-500'}`}
+                    animate={realtimeState.isConnected ? { opacity: [1, 0.5, 1] } : {}}
+                    transition={{ duration: 2, repeat: Infinity }}
+                  />
+                  <Badge variant="outline" className="bg-white/50">
+                    {state.activities.filter(a => {
+                      const today = new Date().toDateString();
+                      return new Date(a.date).toDateString() === today;
+                    }).length} activities today
+                  </Badge>
+                </div>
+              </div>
+
+              {/* Progress Bar */}
+              <div className="mt-3">
+                <div className="w-full bg-blue-200 rounded-full h-2">
+                  <motion.div
+                    className="h-2 rounded-full bg-gradient-to-r from-blue-500 to-green-500"
+                    initial={{ width: 0 }}
+                    animate={{ width: `${realtimeState.dailyGoalProgress}%` }}
+                    transition={{ duration: 1, ease: "easeOut" }}
+                  />
+                </div>
+              </div>
+            </CardContent>
+
+            {/* Celebration sparkles overlay */}
+            <AnimatePresence>
+              {showCelebration && (
+                <div className="absolute inset-0 pointer-events-none">
+                  {[...Array(12)].map((_, i) => (
+                    <motion.div
+                      key={i}
+                      className="absolute"
+                      initial={{
+                        opacity: 0,
+                        scale: 0,
+                        x: Math.random() * 100 + '%',
+                        y: Math.random() * 100 + '%'
+                      }}
+                      animate={{
+                        opacity: [0, 1, 0],
+                        scale: [0, 1, 0],
+                        rotate: 360
+                      }}
+                      transition={{
+                        duration: 2,
+                        delay: i * 0.1,
+                        ease: "easeOut"
+                      }}
+                    >
+                      <Sparkles className="h-4 w-4 text-yellow-500" />
+                    </motion.div>
+                  ))}
+                </div>
+              )}
+            </AnimatePresence>
+          </Card>
+        </motion.div>
+
+        {/* Status Alert */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.1 }}
         >
           <Card className={`${totalFootprint < monthlyTarget ? 'border-green-200 bg-green-50 dark:bg-green-950/20' : 'border-orange-200 bg-orange-50 dark:bg-orange-950/20'}`}>
             <CardContent className="pt-6">
