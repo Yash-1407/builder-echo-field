@@ -1,9 +1,10 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Plus, Car, Zap, Utensils, ShoppingBag } from "lucide-react";
-import { motion } from "framer-motion";
+import { Plus, Car, Zap, Utensils, ShoppingBag, Sparkles } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
 import ActivityFormModal from "./ActivityFormModal";
+import { useRealtime } from "@/contexts/RealtimeContext";
 
 interface QuickAction {
   icon: React.ElementType;
