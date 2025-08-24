@@ -1,32 +1,30 @@
 import { RequestHandler } from "express";
 import { z } from "zod";
-import { supabase, Activity } from "../lib/supabase";
+import { supabase } from "../lib/supabase";
 
 // Validation schemas
 const createActivitySchema = z.object({
   type: z.enum(["transport", "energy", "food", "shopping"]),
   description: z.string().min(1, "Description is required"),
   impact: z.number().min(0, "Impact must be positive"),
-  unit: z.string().default("kg CO₂"),
+  unit: z.string().min(1, "Unit is required"),
   date: z.string().datetime(),
   category: z.string().min(1, "Category is required"),
-  details: z
-    .object({
-      distance: z.number().optional(),
-      vehicle_type: z.string().optional(),
-      energy_amount: z.number().optional(),
-      energy_source: z.string().optional(),
-      meal_type: z.string().optional(),
-      food_type: z.string().optional(),
-      item_type: z.string().optional(),
-      quantity: z.number().optional(),
-    })
-    .default({}),
+  details: z.object({
+    distance: z.number().optional(),
+    vehicle_type: z.string().optional(),
+    energy_amount: z.number().optional(),
+    energy_source: z.string().optional(),
+    meal_type: z.string().optional(),
+    food_type: z.string().optional(),
+    item_type: z.string().optional(),
+    quantity: z.number().optional(),
+  }).optional(),
 });
 
 const updateActivitySchema = createActivitySchema.partial();
 
-// Get all activities for a user
+// Get all activities for the authenticated user
 export const handleGetActivities: RequestHandler = async (req, res) => {
   try {
     const userId = req.user?.id;
@@ -34,90 +32,25 @@ export const handleGetActivities: RequestHandler = async (req, res) => {
       return res.status(401).json({ error: "Not authenticated" });
     }
 
-    const { limit, offset, type, startDate, endDate } = req.query;
-
-    let query = supabase.from("activities").select("*").eq("user_id", userId);
-
-    // Apply filters
-    if (type && typeof type === "string") {
-      query = query.eq("type", type);
-    }
-
-    if (startDate && typeof startDate === "string") {
-      query = query.gte("date", startDate);
-    }
-
-    if (endDate && typeof endDate === "string") {
-      query = query.lte("date", endDate);
-    }
-
-    // Apply sorting (newest first)
-    query = query.order("date", { ascending: false });
-
-    // Apply pagination
-    const limitNum = limit ? parseInt(limit as string) : undefined;
-    const offsetNum = offset ? parseInt(offset as string) : 0;
-
-    if (limitNum) {
-      query = query.range(offsetNum, offsetNum + limitNum - 1);
-    }
-
-    const { data: activities, error, count } = await query;
+    const { data: activities, error } = await supabase
+      .from("activities")
+      .select("*")
+      .eq("user_id", userId)
+      .order("created_at", { ascending: false });
 
     if (error) {
       console.error("Get activities error:", error);
       return res.status(500).json({ error: "Failed to fetch activities" });
     }
 
-    // Get total count for pagination
-    const { count: totalCount } = await supabase
-      .from("activities")
-      .select("*", { count: "exact", head: true })
-      .eq("user_id", userId);
-
-    res.json({
-      activities: activities || [],
-      total: totalCount || 0,
-    });
+    res.json({ activities: activities || [] });
   } catch (error) {
     console.error("Get activities error:", error);
     res.status(500).json({ error: "Internal server error" });
   }
 };
 
-// Get single activity
-export const handleGetActivity: RequestHandler = async (req, res) => {
-  try {
-    const userId = req.user?.id;
-    const { id } = req.params;
-
-    if (!userId) {
-      return res.status(401).json({ error: "Not authenticated" });
-    }
-
-    const { data: activity, error } = await supabase
-      .from("activities")
-      .select("*")
-      .eq("id", id)
-      .eq("user_id", userId)
-      .single();
-
-    if (error) {
-      if (error.code === "PGRST116") {
-        return res.status(404).json({ error: "Activity not found" });
-      }
-      console.error("Get activity error:", error);
-      return res.status(500).json({ error: "Failed to fetch activity" });
-    }
-
-    res.json({ activity });
-  } catch (error) {
-    console.error("Get activity error:", error);
-    res.status(500).json({ error: "Internal server error" });
-  }
-};
-
-// Create new activity
+// Create a new activity
 export const handleCreateActivity: RequestHandler = async (req, res) => {
   try {
     const userId = req.user?.id;
@@ -137,7 +70,9 @@ export const handleCreateActivity: RequestHandler = async (req, res) => {
         unit: activityData.unit,
         date: activityData.date,
         category: activityData.category,
-        details: activityData.details,
+        details: activityData.details || {},
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
       })
       .select()
       .single();
@@ -157,11 +92,11 @@ export const handleCreateActivity: RequestHandler = async (req, res) => {
   }
 };
 
-// Update activity
+// Update an activity
 export const handleUpdateActivity: RequestHandler = async (req, res) => {
   try {
     const userId = req.user?.id;
-    const { id } = req.params;
+    const activityId = req.params.id;
 
     if (!userId) {
       return res.status(401).json({ error: "Not authenticated" });
@@ -169,28 +104,28 @@ export const handleUpdateActivity: RequestHandler = async (req, res) => {
 
     const updates = updateActivitySchema.parse(req.body);
 
-    // Build update object
-    const updateObj: any = {};
-    if (updates.type) updateObj.type = updates.type;
-    if (updates.description) updateObj.description = updates.description;
-    if (updates.impact !== undefined) updateObj.impact = updates.impact;
-    if (updates.unit) updateObj.unit = updates.unit;
-    if (updates.date) updateObj.date = updates.date;
-    if (updates.category) updateObj.category = updates.category;
-    if (updates.details) updateObj.details = updates.details;
+    // Verify the activity belongs to the user
+    const { data: existingActivity, error: fetchError } = await supabase
+      .from("activities")
+      .select("user_id")
+      .eq("id", activityId)
+      .single();
+
+    if (fetchError || !existingActivity || existingActivity.user_id !== userId) {
+      return res.status(404).json({ error: "Activity not found" });
+    }
 
     const { data: activity, error } = await supabase
       .from("activities")
-      .update(updateObj)
-      .eq("id", id)
-      .eq("user_id", userId)
+      .update({
+        ...updates,
+        updated_at: new Date().toISOString(),
+      })
+      .eq("id", activityId)
       .select()
       .single();
 
     if (error) {
-      if (error.code === "PGRST116") {
-        return res.status(404).json({ error: "Activity not found" });
-      }
       console.error("Update activity error:", error);
       return res.status(500).json({ error: "Failed to update activity" });
     }
@@ -205,21 +140,31 @@ export const handleUpdateActivity: RequestHandler = async (req, res) => {
   }
 };
 
-// Delete activity
+// Delete an activity
 export const handleDeleteActivity: RequestHandler = async (req, res) => {
   try {
     const userId = req.user?.id;
-    const { id } = req.params;
+    const activityId = req.params.id;
 
     if (!userId) {
       return res.status(401).json({ error: "Not authenticated" });
     }
 
+    // Verify the activity belongs to the user
+    const { data: existingActivity, error: fetchError } = await supabase
+      .from("activities")
+      .select("user_id")
+      .eq("id", activityId)
+      .single();
+
+    if (fetchError || !existingActivity || existingActivity.user_id !== userId) {
+      return res.status(404).json({ error: "Activity not found" });
+    }
+
     const { error } = await supabase
       .from("activities")
       .delete()
-      .eq("id", id)
-      .eq("user_id", userId);
+      .eq("id", activityId);
 
     if (error) {
       console.error("Delete activity error:", error);
@@ -233,8 +178,8 @@ export const handleDeleteActivity: RequestHandler = async (req, res) => {
   }
 };
 
-// Get activity analytics
-export const handleGetAnalytics: RequestHandler = async (req, res) => {
+// Get activity statistics
+export const handleGetActivityStats: RequestHandler = async (req, res) => {
   try {
     const userId = req.user?.id;
     if (!userId) {
@@ -242,10 +187,8 @@ export const handleGetAnalytics: RequestHandler = async (req, res) => {
     }
 
     const { period = "month" } = req.query;
-
-    // Calculate date range based on period
     const now = new Date();
-    const startDate = new Date();
+    let startDate = new Date();
 
     switch (period) {
       case "week":
@@ -254,9 +197,6 @@ export const handleGetAnalytics: RequestHandler = async (req, res) => {
       case "month":
         startDate.setMonth(now.getMonth() - 1);
         break;
-      case "quarter":
-        startDate.setMonth(now.getMonth() - 3);
-        break;
       case "year":
         startDate.setFullYear(now.getFullYear() - 1);
         break;
@@ -264,160 +204,64 @@ export const handleGetAnalytics: RequestHandler = async (req, res) => {
         startDate.setMonth(now.getMonth() - 1);
     }
 
-    // Get activities for the specified period
+    // Get activities for the period
     const { data: activities, error } = await supabase
       .from("activities")
       .select("*")
       .eq("user_id", userId)
-      .gte("date", startDate.toISOString())
-      .order("date", { ascending: false });
+      .gte("date", startDate.toISOString());
 
     if (error) {
-      console.error("Get analytics error:", error);
-      return res.status(500).json({ error: "Failed to fetch analytics" });
+      console.error("Get activity stats error:", error);
+      return res.status(500).json({ error: "Failed to fetch activity stats" });
     }
 
-    // Calculate total footprint
-    const totalFootprint = activities.reduce(
-      (total, activity) => total + activity.impact,
-      0,
-    );
+    // Calculate stats
+    const totalImpact = activities?.reduce((sum, activity) => sum + activity.impact, 0) || 0;
+    const activityCount = activities?.length || 0;
 
-    // Calculate footprint by category
-    const categoryTotals = activities.reduce(
-      (totals, activity) => {
-        if (!totals[activity.type]) {
-          totals[activity.type] = 0;
-        }
-        totals[activity.type] += activity.impact;
-        return totals;
-      },
-      {} as Record<string, number>,
-    );
+    const byCategory = activities?.reduce((acc: any, activity) => {
+      if (!acc[activity.type]) {
+        acc[activity.type] = { count: 0, impact: 0 };
+      }
+      acc[activity.type].count++;
+      acc[activity.type].impact += activity.impact;
+      return acc;
+    }, {}) || {};
 
-    const footprintByCategory = [
-      {
-        name: "Transportation",
-        value: categoryTotals.transport || 0,
-        color: "#3b82f6",
-      },
-      { name: "Energy", value: categoryTotals.energy || 0, color: "#10b981" },
-      { name: "Food", value: categoryTotals.food || 0, color: "#f59e0b" },
-      {
-        name: "Shopping",
-        value: categoryTotals.shopping || 0,
-        color: "#8b5cf6",
-      },
-    ].filter((category) => category.value > 0);
-
-    // Calculate trend data (last 6 periods)
+    // Trend data (last 6 months)
     const trendData = [];
     for (let i = 5; i >= 0; i--) {
-      const periodStart = new Date();
-      const periodEnd = new Date();
+      const date = new Date();
+      date.setMonth(date.getMonth() - i);
+      const monthStart = new Date(date.getFullYear(), date.getMonth(), 1);
+      const monthEnd = new Date(date.getFullYear(), date.getMonth() + 1, 0);
 
-      if (period === "week") {
-        periodStart.setDate(now.getDate() - (i + 1) * 7);
-        periodEnd.setDate(now.getDate() - i * 7);
-      } else {
-        periodStart.setMonth(now.getMonth() - (i + 1));
-        periodEnd.setMonth(now.getMonth() - i);
-      }
-
-      const periodActivities = activities.filter((activity) => {
+      const monthActivities = activities?.filter(activity => {
         const activityDate = new Date(activity.date);
-        return activityDate >= periodStart && activityDate < periodEnd;
-      });
+        return activityDate >= monthStart && activityDate <= monthEnd;
+      }) || [];
 
-      const periodTotal = periodActivities.reduce(
-        (total, activity) => total + activity.impact,
-        0,
-      );
+      const monthImpact = monthActivities.reduce((sum, activity) => sum + activity.impact, 0);
 
       trendData.push({
-        name:
-          period === "week"
-            ? `Week ${i + 1}`
-            : periodStart.toLocaleDateString("en-US", { month: "short" }),
-        value: Math.round(periodTotal * 100) / 100,
+        month: date.toLocaleDateString("en-US", { month: "short" }),
+        impact: Math.round(monthImpact * 100) / 100,
+        count: monthActivities.length,
       });
     }
 
     res.json({
-      period,
-      totalFootprint: Math.round(totalFootprint * 100) / 100,
-      dailyAverage:
-        Math.round((totalFootprint / (period === "week" ? 7 : 30)) * 100) / 100,
-      activityCount: activities.length,
-      footprintByCategory,
-      trendData,
+      stats: {
+        totalImpact: Math.round(totalImpact * 100) / 100,
+        activityCount,
+        byCategory,
+        trendData,
+        period,
+      },
     });
   } catch (error) {
-    console.error("Get analytics error:", error);
-    res.status(500).json({ error: "Internal server error" });
-  }
-};
-
-// Get recent activities (for dashboard)
-export const handleGetRecentActivities: RequestHandler = async (req, res) => {
-  try {
-    const userId = req.user?.id;
-    if (!userId) {
-      return res.status(401).json({ error: "Not authenticated" });
-    }
-
-    const { data: activities, error } = await supabase
-      .from("activities")
-      .select("*")
-      .eq("user_id", userId)
-      .order("created_at", { ascending: false })
-      .limit(10);
-
-    if (error) {
-      console.error("Get recent activities error:", error);
-      return res
-        .status(500)
-        .json({ error: "Failed to fetch recent activities" });
-    }
-
-    res.json({ activities: activities || [] });
-  } catch (error) {
-    console.error("Get recent activities error:", error);
-    res.status(500).json({ error: "Internal server error" });
-  }
-};
-
-// Bulk delete activities (for cleanup)
-export const handleBulkDeleteActivities: RequestHandler = async (req, res) => {
-  try {
-    const userId = req.user?.id;
-    if (!userId) {
-      return res.status(401).json({ error: "Not authenticated" });
-    }
-
-    const { activityIds } = req.body;
-
-    if (!Array.isArray(activityIds) || activityIds.length === 0) {
-      return res.status(400).json({ error: "Activity IDs array is required" });
-    }
-
-    const { error } = await supabase
-      .from("activities")
-      .delete()
-      .eq("user_id", userId)
-      .in("id", activityIds);
-
-    if (error) {
-      console.error("Bulk delete activities error:", error);
-      return res.status(500).json({ error: "Failed to delete activities" });
-    }
-
-    res.json({
-      message: `Successfully deleted ${activityIds.length} activities`,
-      deletedCount: activityIds.length,
-    });
-  } catch (error) {
-    console.error("Bulk delete activities error:", error);
+    console.error("Get activity stats error:", error);
     res.status(500).json({ error: "Internal server error" });
   }
 };
