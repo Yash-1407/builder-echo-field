@@ -3,16 +3,16 @@ import { Link, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import NotificationBell from "./NotificationBell";
-import { 
-  Leaf, 
-  Menu, 
-  Sun, 
-  Moon, 
-  BarChart3, 
-  Plus, 
-  TrendingUp, 
-  Users, 
-  User 
+import {
+  Leaf,
+  Menu,
+  Sun,
+  Moon,
+  BarChart3,
+  Plus,
+  TrendingUp,
+  Users,
+  User,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
@@ -54,7 +54,9 @@ export default function Layout({ children }: LayoutProps) {
             >
               <Leaf className="h-5 w-5 text-primary-foreground" />
             </motion.div>
-            <span className="text-xl font-bold text-foreground">CarbonMeter</span>
+            <span className="text-xl font-bold text-foreground">
+              CarbonMeter
+            </span>
           </Link>
 
           {/* Desktop Navigation */}
@@ -109,7 +111,11 @@ export default function Layout({ children }: LayoutProps) {
             {/* Mobile Menu */}
             <Sheet open={isOpen} onOpenChange={setIsOpen}>
               <SheetTrigger asChild>
-                <Button variant="ghost" size="sm" className="md:hidden h-9 w-9 px-0">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="md:hidden h-9 w-9 px-0"
+                >
                   <Menu className="h-4 w-4" />
                 </Button>
               </SheetTrigger>
@@ -151,9 +157,7 @@ export default function Layout({ children }: LayoutProps) {
       </header>
 
       {/* Main Content */}
-      <main className="flex-1">
-        {children}
-      </main>
+      <main className="flex-1">{children}</main>
     </div>
   );
 }
