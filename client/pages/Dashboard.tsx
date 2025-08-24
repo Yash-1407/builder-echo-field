@@ -16,6 +16,13 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  Loading,
+  StatsSkeleton,
+  ChartSkeleton,
+  ActivitySkeleton,
+} from "@/components/ui/loading";
+import { ErrorDisplay, EmptyState } from "@/components/ui/error-display";
 import StatsCard from "@/components/StatsCard";
 import ActivityChart from "@/components/ActivityChart";
 import QuickActions from "@/components/QuickActions";
@@ -35,17 +42,88 @@ import {
   Share2,
   AlertTriangle,
   CheckCircle2,
+<<<<<<< HEAD
   Sparkles,
   Flame,
+=======
+  Plus,
+>>>>>>> refs/remotes/origin/main
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
 export default function Dashboard() {
   const [selectedPeriod, setSelectedPeriod] = useState("month");
+<<<<<<< HEAD
   const [showCelebration, setShowCelebration] = useState(false);
   const { getTotalFootprint, getFootprintByCategory, getTrendData, state } =
     useActivity();
   const { state: realtimeState } = useRealtime();
+=======
+  const {
+    getTotalFootprint,
+    getFootprintByCategory,
+    getTrendData,
+    state,
+    refreshAnalytics,
+    refreshActivities,
+  } = useActivity();
+
+  // Handle period changes
+  useEffect(() => {
+    if (state.isAuthenticated) {
+      refreshAnalytics(selectedPeriod);
+    }
+  }, [selectedPeriod, state.isAuthenticated]);
+
+  // Show loading state
+  if (state.isLoading) {
+    return (
+      <div className="min-h-screen bg-background">
+        <div className="container mx-auto px-4 py-8 space-y-8">
+          <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+            <div>
+              <h1 className="text-3xl font-bold text-foreground">Dashboard</h1>
+              <p className="text-muted-foreground">
+                Track your carbon footprint and sustainability goals
+              </p>
+            </div>
+          </div>
+
+          <StatsSkeleton />
+
+          <div className="grid lg:grid-cols-3 gap-8">
+            <div className="lg:col-span-2 space-y-6">
+              <ChartSkeleton />
+              <ChartSkeleton />
+            </div>
+            <div className="space-y-6">
+              <ChartSkeleton />
+              <ActivitySkeleton />
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Show error state
+  if (state.error) {
+    return (
+      <div className="min-h-screen bg-background">
+        <div className="container mx-auto px-4 py-8">
+          <ErrorDisplay
+            error={state.error}
+            variant="network"
+            onRetry={() => {
+              refreshActivities();
+              refreshAnalytics(selectedPeriod);
+            }}
+          />
+        </div>
+      </div>
+    );
+  }
+>>>>>>> refs/remotes/origin/main
 
   // Get real data from context
   const totalFootprint = getTotalFootprint("month");
@@ -65,6 +143,7 @@ export default function Dashboard() {
     500 + Math.round((monthlyTarget - totalFootprint) * 100),
     0,
   );
+<<<<<<< HEAD
 
   // Trigger celebration when daily progress increases significantly
   useEffect(() => {
@@ -76,6 +155,8 @@ export default function Dashboard() {
       setTimeout(() => setShowCelebration(false), 3000);
     }
   }, [realtimeState.dailyGoalProgress]);
+=======
+>>>>>>> refs/remotes/origin/main
 
   const monthlyData = [
     { name: "Week 1", value: 1.4 },
@@ -178,6 +259,7 @@ export default function Dashboard() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5 }}
         >
+<<<<<<< HEAD
           <Card className="border-blue-200 bg-blue-50 dark:bg-blue-950/20 relative overflow-hidden">
             <CardContent className="pt-6">
               <div className="flex items-center justify-between">
@@ -277,6 +359,8 @@ export default function Dashboard() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, delay: 0.1 }}
         >
+=======
+>>>>>>> refs/remotes/origin/main
           <Card
             className={`${totalFootprint < monthlyTarget ? "border-green-200 bg-green-50 dark:bg-green-950/20" : "border-orange-200 bg-orange-50 dark:bg-orange-950/20"}`}
           >
@@ -362,19 +446,53 @@ export default function Dashboard() {
           {/* Left Column - Charts */}
           <div className="lg:col-span-2 space-y-6">
             {/* Carbon Footprint Breakdown */}
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, delay: 0.2 }}
-            >
-              <ActivityChart
-                title="Carbon Footprint Breakdown"
-                description="Your emissions by category this month"
-                data={carbonFootprintData}
-                type="pie"
-                height={350}
-              />
-            </motion.div>
+            <AnimatePresence mode="wait">
+              {carbonFootprintData.length > 0 ? (
+                <motion.div
+                  key="chart-data"
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -20 }}
+                  transition={{ duration: 0.5, delay: 0.2 }}
+                >
+                  <ActivityChart
+                    title="Carbon Footprint Breakdown"
+                    description="Your emissions by category this month"
+                    data={carbonFootprintData}
+                    type="pie"
+                    height={350}
+                  />
+                </motion.div>
+              ) : (
+                <motion.div
+                  key="chart-empty"
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -20 }}
+                  transition={{ duration: 0.5, delay: 0.2 }}
+                >
+                  <Card className="border-0 shadow-md">
+                    <CardHeader>
+                      <CardTitle>Carbon Footprint Breakdown</CardTitle>
+                      <CardDescription>
+                        Your emissions by category this month
+                      </CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                      <EmptyState
+                        title="No Data Yet"
+                        description="Start logging activities to see your carbon footprint breakdown"
+                        action={{
+                          label: "Track Activity",
+                          onClick: () => (window.location.href = "/activity"),
+                        }}
+                        icon={Leaf}
+                      />
+                    </CardContent>
+                  </Card>
+                </motion.div>
+              )}
+            </AnimatePresence>
 
             {/* Trend Analysis */}
             <motion.div
